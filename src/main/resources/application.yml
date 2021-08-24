@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/julydb?serverTimezone=UTC&characterEncoding=UTF-8
+    url: jdbc:mysql://localhost:3306/augustdb?serverTimezone=UTC&characterEncoding=UTF-8
     username: root
     password: akakfls
 
@@ -12,6 +12,16 @@ spring:
     hibernate:
       format_sql: true
       ddl-auto: create
+
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
+#  file:
+#    upload:
+#      location: /Users/mac/Desktop
+
 
 logging:
   level:
