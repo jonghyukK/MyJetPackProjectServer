@@ -1,5 +1,6 @@
 package com.kjh.myserver073.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import javax.persistence.*
 
 /**
@@ -14,18 +15,15 @@ import javax.persistence.*
 data class PostModel(
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "post_id")
     val postId: Int?,
 
     @Column
-    val fileName: String,
+    val cityCategory: String,
 
-    @Column
-    val filePath: String,
-
-    @Column
-    val imageUrl: String,
+    @ElementCollection(fetch = FetchType.EAGER)
+    val imageUrl: List<String>? = listOf(),
 
     @Column
     val email: String,
@@ -61,5 +59,5 @@ data class PostModel(
     val x: String,
 
     @Column
-    val y: String
+    val y: String,
 )

@@ -4,6 +4,7 @@ import com.kjh.myserver073.BASE_IMAGE_URL
 import com.kjh.myserver073.IMAGE_SAVE_FOLDER
 import com.kjh.myserver073.model.*
 import com.kjh.myserver073.service.UserService
+import com.kjh.myserver073.utils.LocationUtil
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -96,11 +97,26 @@ class UserController {
     fun getUser(
         @RequestParam(value = "email") email: String
     ): ResponseEntity<Any?> {
+        val user = userService.getUserByEmail(email)!!
+
+        val convertPosts = user.posts.groupBy({ it.cityCategory }, { it })
+            .plus("전체" to user.posts)
+
+        val userVo = UserVo(
+            user.userId,
+            user.email,
+            user.pw,
+            user.postCount,
+            user.followingCount,
+            user.followCount,
+            user.profileImg,
+            convertPosts
+        )
+
         return ResponseEntity
             .ok()
-            .body(userService.getUserByEmail(email))
+            .body(userVo)
     }
-
 
     /***************************************************
      *
@@ -129,6 +145,18 @@ class UserController {
         }
     }
 
+    @DeleteMapping("/user")
+    private fun deleteUser(
+        @RequestParam(value = "postId") postId: Int
+    ): ResponseEntity<Any> {
+//        val user = userService.getUserByEmail("saz300@naver.com")
+        val result = userService.deleteByUserId(postId)
+
+        return ResponseEntity
+            .ok()
+            .body("test")
+    }
+
 
     /***************************************************
      *
@@ -139,7 +167,7 @@ class UserController {
     private fun uploadPost(
         @RequestParam("email"               ) email         : String,
         @RequestParam("content"             ) content       : String,
-        @RequestPart("file"                 ) file          : MultipartFile,
+        @RequestPart("file"                 ) file          : List<MultipartFile>,
         @RequestParam("address_name"        ) address_name  : String,
         @RequestParam("category_group_code" ) category_group_code: String,
         @RequestParam("category_group_name" ) category_group_name: String,
@@ -152,7 +180,6 @@ class UserController {
         @RequestParam("y"                   ) y             : String,
     ): ResponseEntity<Any> {
         try {
-
             val savedPostData = savePostData(
                 email,
                 content,
@@ -169,18 +196,34 @@ class UserController {
                 y
             )
 
-            val updateUser = userService.getUserByEmail(email)!!.apply {
-                if (posts.isNullOrEmpty()) {
-                    posts = mutableListOf()
+            val updateUser =
+                with(userService.getUserByEmail(email)!!) {
+                    posts += savedPostData
+                    copy(
+                        posts = posts,
+                        postCount = posts.size
+                    )
+                }.run {
+                    userService.createUser(this)
                 }
-                posts!!.add(savedPostData)
-            }
 
-            userService.createUser(updateUser)
+            val convertPosts = updateUser.posts.groupBy({ it.cityCategory }, { it })
+                .plus("전체" to updateUser.posts)
+
+            val userVo = UserVo(
+                updateUser.userId,
+                updateUser.email,
+                updateUser.pw,
+                updateUser.postCount,
+                updateUser.followingCount,
+                updateUser.followCount,
+                updateUser.profileImg,
+                convertPosts
+            )
 
             return ResponseEntity
                 .ok()
-                .body(updateUser)
+                .body(userVo)
 
         } catch (e: Exception) {
             e.printStackTrace()
@@ -197,7 +240,7 @@ class UserController {
     private fun savePostData(
         email       : String,
         content     : String,
-        file        : MultipartFile,
+        files       : List<MultipartFile>,
         address_name: String,
         category_group_code: String,
         category_group_name: String,
@@ -207,9 +250,9 @@ class UserController {
         place_url   : String,
         road_address_name: String,
         x           : String,
-        y           : String
+        y           : String,
     ): PostModel {
-        val originFileName = file.originalFilename ?: "Empty Origin File Name"
+        val imgUrls = mutableListOf<String>()
         val savePath = System.getProperty("user.dir") + IMAGE_SAVE_FOLDER
 
         if (!File(savePath).exists()) {
@@ -220,14 +263,18 @@ class UserController {
             }
         }
 
-        val filePath = "$savePath/$originFileName"
-        file.transferTo(File(filePath))
+        for (file in files) {
+            val originFileName = file.originalFilename ?: "Empty"
+            val filePath = "$savePath/$originFileName"
+            file.transferTo(File(filePath))
+
+            imgUrls.add("$BASE_IMAGE_URL${file.originalFilename}")
+        }
 
         return PostModel(
             postId = null,
-            fileName = originFileName,
-            filePath = filePath,
-            imageUrl = "$BASE_IMAGE_URL${file.originalFilename}",
+            cityCategory = LocationUtil.makeCityCategory(address_name),
+            imageUrl = imgUrls,
             email    = email,
             content  = content,
             address_name = address_name,
@@ -239,7 +286,7 @@ class UserController {
             place_url = place_url,
             road_address_name = road_address_name,
             x = x,
-            y = y
+            y = y,
         )
     }
 }

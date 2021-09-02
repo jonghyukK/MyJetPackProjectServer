@@ -10,7 +10,9 @@ import org.springframework.data.repository.CrudRepository
  *
  * Description:
  */
-interface UserRepository: CrudRepository<UserModel, String> {
+interface UserRepository: CrudRepository<UserModel, Int> {
 
     fun findByEmail(email: String): UserModel?
+
+    fun deleteByUserId(userId: Int)
 }

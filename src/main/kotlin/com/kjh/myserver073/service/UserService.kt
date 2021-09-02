@@ -2,6 +2,7 @@ package com.kjh.myserver073.service
 
 import com.kjh.myserver073.model.UserModel
 import org.springframework.stereotype.Service
+import javax.transaction.Transactional
 
 /**
  * myserver073
@@ -12,8 +13,10 @@ import org.springframework.stereotype.Service
  */
 @Service
 interface UserService {
-
     fun getUserByEmail(email: String): UserModel?
 
     fun createUser(userModel: UserModel): UserModel
+
+    @Transactional
+    fun deleteByUserId(userId: Int)
 }

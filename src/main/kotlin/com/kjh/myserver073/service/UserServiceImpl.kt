@@ -19,6 +19,7 @@ class UserServiceImpl constructor(
     @Autowired private val userRepository: UserRepository
 ): UserService {
 
+    @Transactional
     override fun getUserByEmail(email: String): UserModel? {
         return userRepository.findByEmail(email)
     }
@@ -26,4 +27,11 @@ class UserServiceImpl constructor(
     @Transactional
     override fun createUser(userModel: UserModel): UserModel =
         userRepository.save(userModel)
+
+    @Transactional
+    override fun deleteByUserId(userId: Int) {
+        userRepository.deleteByUserId(userId)
+    }
+
+
 }

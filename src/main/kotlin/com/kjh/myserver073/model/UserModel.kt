@@ -17,7 +17,7 @@ data class UserModel(
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "user_id")
-    val userId: Int?,
+    val userId: Int? = 0,
 
     @Column
     val email: String,
@@ -26,10 +26,10 @@ data class UserModel(
     val pw: String,
 
     @Column
-    val postCount: Int? = 0,
+    val followingCount: Int? = 0,
 
     @Column
-    val followingCount: Int? = 0,
+    val postCount: Int? = 0,
 
     @Column
     val followCount: Int? = 0,
@@ -38,7 +38,8 @@ data class UserModel(
     val profileImg: String? = null,
 
     @OneToMany(fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
-    var posts: MutableList<PostModel>? = null
+    @JoinColumn(name = "user_id")
+    val posts: MutableList<PostModel> = mutableListOf(),
 )
 
 data class UserResponse(
