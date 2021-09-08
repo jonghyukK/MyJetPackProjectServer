@@ -99,8 +99,11 @@ class UserController {
     ): ResponseEntity<Any?> {
         val user = userService.getUserByEmail(email)!!
 
-        val convertPosts = user.posts.groupBy({ it.cityCategory }, { it })
-            .plus("전체" to user.posts)
+
+        val mapPostsByCityCategory = if (user.posts.isNotEmpty())
+            mapOf("전체" to user.posts) + user.posts.groupBy({ it.cityCategory }, { it })
+         else
+            user.posts.groupBy({ it.cityCategory }, { it })
 
         val userVo = UserVo(
             user.userId,
@@ -110,7 +113,7 @@ class UserController {
             user.followingCount,
             user.followCount,
             user.profileImg,
-            convertPosts
+            mapPostsByCityCategory
         )
 
         return ResponseEntity
@@ -145,17 +148,16 @@ class UserController {
         }
     }
 
-    @DeleteMapping("/user")
-    private fun deleteUser(
-        @RequestParam(value = "postId") postId: Int
-    ): ResponseEntity<Any> {
-//        val user = userService.getUserByEmail("saz300@naver.com")
-        val result = userService.deleteByUserId(postId)
-
-        return ResponseEntity
-            .ok()
-            .body("test")
-    }
+//    @DeleteMapping("/user")
+//    private fun deleteUser(
+//        @RequestParam(value = "postId") postId: Int
+//    ): ResponseEntity<Any> {
+//        val result = userService.deleteByUserId(postId)
+//
+//        return ResponseEntity
+//            .ok()
+//            .body("test")
+//    }
 
 
     /***************************************************
@@ -200,15 +202,15 @@ class UserController {
                 with(userService.getUserByEmail(email)!!) {
                     posts += savedPostData
                     copy(
-                        posts = posts,
+                        posts = posts.asReversed(),
                         postCount = posts.size
                     )
                 }.run {
                     userService.createUser(this)
                 }
 
-            val convertPosts = updateUser.posts.groupBy({ it.cityCategory }, { it })
-                .plus("전체" to updateUser.posts)
+            val convertPosts = mapOf("전체" to updateUser.posts) +
+                    updateUser.posts.groupBy({ it.cityCategory }, { it })
 
             val userVo = UserVo(
                 updateUser.userId,

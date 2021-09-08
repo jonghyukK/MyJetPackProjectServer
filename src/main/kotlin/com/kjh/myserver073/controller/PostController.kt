@@ -42,8 +42,10 @@ class PostController {
                 userService.createUser(this)
             }
 
-        val convertPosts = updateUser.posts.groupBy({ it.cityCategory }, { it })
-            .plus("전체" to updateUser.posts)
+        val mapPostsByCityCategory = if (updateUser.posts.isNotEmpty())
+            mapOf("전체" to updateUser.posts) + updateUser.posts.groupBy({ it.cityCategory }, { it })
+        else
+            updateUser.posts.groupBy({ it.cityCategory }, { it })
 
         return ResponseEntity
             .ok()
@@ -55,6 +57,21 @@ class PostController {
                 updateUser.followingCount,
                 updateUser.followCount,
                 updateUser.profileImg,
-                convertPosts))
+                mapPostsByCityCategory))
+    }
+
+    @GetMapping("post")
+    private fun getPosts(
+        @RequestParam(value = "city") cityName: String? = null
+    ): ResponseEntity<Any> {
+        if (cityName != null) {
+            return ResponseEntity
+                .ok()
+                .body(postService.findAllByCityCategory(cityName).reversed())
+        }
+
+        return ResponseEntity
+            .ok()
+            .body(postService.findAll().reversed().slice(0 .. 10))
     }
 }
