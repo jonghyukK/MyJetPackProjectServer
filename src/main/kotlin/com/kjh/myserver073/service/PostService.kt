@@ -13,9 +13,13 @@ import org.springframework.stereotype.Service
 @Service
 interface PostService {
 
+    fun findByPostId(postId: Int): PostModel
+
     fun deleteByPostId(postId: Int): Int
 
     fun findAll(): List<PostModel>
 
     fun findAllByCityCategory(cityCategory: String): List<PostModel>
+
+    fun findAllByPlaceName(placeName: String): List<PostModel>
 }

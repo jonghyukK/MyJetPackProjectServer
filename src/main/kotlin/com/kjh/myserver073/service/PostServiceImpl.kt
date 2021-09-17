@@ -17,6 +17,9 @@ import javax.transaction.Transactional
 class PostServiceImpl constructor(
     @Autowired private val postRepository: PostRepository
 ): PostService {
+    override fun findByPostId(postId: Int): PostModel {
+        return postRepository.findByPostId(postId)
+    }
 
     @Transactional
     override fun deleteByPostId(postId: Int): Int {
@@ -31,5 +34,9 @@ class PostServiceImpl constructor(
 
     override fun findAllByCityCategory(cityCategory: String): List<PostModel> {
         return postRepository.findByCityCategory(cityCategory)
+    }
+
+    override fun findAllByPlaceName(placeName: String): List<PostModel> {
+        return postRepository.findByPlaceName(placeName)
     }
 }

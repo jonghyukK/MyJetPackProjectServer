@@ -47,7 +47,7 @@ data class PostModel(
     val phone: String,
 
     @Column
-    val place_name: String,
+    val placeName: String,
 
     @Column
     val place_url: String,
@@ -60,4 +60,7 @@ data class PostModel(
 
     @Column
     val y: String,
+
+    @Column(name = "profileImg")
+    val profileImg: String?,
 )

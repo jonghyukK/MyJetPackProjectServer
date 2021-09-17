@@ -13,8 +13,10 @@ import javax.transaction.Transactional
  */
 @Service
 interface UserService {
+    @Transactional
     fun getUserByEmail(email: String): UserModel?
 
+    @Transactional
     fun createUser(userModel: UserModel): UserModel
 
     @Transactional

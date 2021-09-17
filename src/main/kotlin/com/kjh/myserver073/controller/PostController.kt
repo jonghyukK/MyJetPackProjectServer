@@ -1,5 +1,6 @@
 package com.kjh.myserver073.controller
 
+import com.kjh.myserver073.model.PostModel
 import com.kjh.myserver073.model.UserVo
 import com.kjh.myserver073.service.PostService
 import com.kjh.myserver073.service.UserService
@@ -32,7 +33,6 @@ class PostController {
         @RequestParam(value = "postId") postId: Int,
         @RequestParam(value = "email") email: String,
     ): ResponseEntity<Any> {
-
         postService.deleteByPostId(postId)
 
         val updateUser =
@@ -57,12 +57,14 @@ class PostController {
                 updateUser.followingCount,
                 updateUser.followCount,
                 updateUser.profileImg,
+                mutableListOf(),
                 mapPostsByCityCategory))
     }
 
     @GetMapping("post")
     private fun getPosts(
-        @RequestParam(value = "city") cityName: String? = null
+        @RequestParam(value = "city") cityName: String? = null,
+        @RequestParam(value = "placeName") placeName: String? = null
     ): ResponseEntity<Any> {
         if (cityName != null) {
             return ResponseEntity
@@ -70,8 +72,22 @@ class PostController {
                 .body(postService.findAllByCityCategory(cityName).reversed())
         }
 
-        return ResponseEntity
-            .ok()
-            .body(postService.findAll().reversed().slice(0 .. 10))
+        if (placeName != null) {
+            return ResponseEntity
+                .ok()
+                .body(postService.findAllByPlaceName(placeName))
+        }
+
+        val posts = postService.findAll()
+
+        return if (posts.size in 1..9) {
+            ResponseEntity
+                .ok()
+                .body(posts.reversed())
+        } else {
+            ResponseEntity
+                .ok()
+                .body(posts.reversed().slice(0 .. 9))
+        }
     }
 }

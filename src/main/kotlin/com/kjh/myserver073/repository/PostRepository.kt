@@ -17,5 +17,9 @@ interface PostRepository: CrudRepository<PostModel, Int> {
     @Override
     override fun findAll(): List<PostModel>
 
+    fun findByPostId(postId: Int): PostModel
+
     fun findByCityCategory(cityName: String): List<PostModel>
+
+    fun findByPlaceName(placeName: String): List<PostModel>
 }

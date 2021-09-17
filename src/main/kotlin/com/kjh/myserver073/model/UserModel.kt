@@ -40,6 +40,9 @@ data class UserModel(
     @OneToMany(fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
     @JoinColumn(name = "user_id")
     val posts: MutableList<PostModel> = mutableListOf(),
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
+    val bookMarks: MutableList<BookMarkModel> = mutableListOf()
 )
 
 data class UserResponse(

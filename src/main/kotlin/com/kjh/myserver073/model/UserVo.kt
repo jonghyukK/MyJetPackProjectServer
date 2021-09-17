@@ -15,5 +15,6 @@ data class UserVo(
     val followingCount: Int? = 0,
     val followCount: Int? = 0,
     val profileImg: String? = null,
+    val bookMarks: List<PostModel> = listOf(),
     val posts: Map<String, List<PostModel>> = mapOf(),
 )

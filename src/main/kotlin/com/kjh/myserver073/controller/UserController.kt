@@ -1,16 +1,16 @@
 package com.kjh.myserver073.controller
 
-import com.kjh.myserver073.BASE_IMAGE_URL
-import com.kjh.myserver073.IMAGE_SAVE_FOLDER
 import com.kjh.myserver073.model.*
+import com.kjh.myserver073.service.BookMarkService
+import com.kjh.myserver073.service.PostService
 import com.kjh.myserver073.service.UserService
-import com.kjh.myserver073.utils.LocationUtil
+import com.kjh.myserver073.utils.savePostData
+import com.kjh.myserver073.utils.saveProfileFileGetImagePath
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-import java.io.File
 
 /**
  * myserver073
@@ -27,6 +27,12 @@ class UserController {
     @Autowired
     private lateinit var userService: UserService
 
+    @Autowired
+    private lateinit var postService: PostService
+
+    @Autowired
+    private lateinit var bookMarkService: BookMarkService
+
     private fun failResponse(
         errorMsg: String = "이미 가입된 이메일입니다."
     ) = ResponseEntity
@@ -39,7 +45,7 @@ class UserController {
 
     /*******************************************************************
      *
-     *  회원가입.
+     *  [POST] 회원가입.
      *
      *******************************************************************/
     @PostMapping("/user")
@@ -55,7 +61,7 @@ class UserController {
         userService.createUser(UserModel(
             userId      = null,
             email       = email,
-            pw          = pw,
+            pw          = pw
         ))
 
         return ResponseEntity
@@ -68,7 +74,7 @@ class UserController {
 
     /***************************************************
      *
-     *  이메일 중복 체크.
+     *  [GET] 이메일 중복 체크.
      *
      ***************************************************/
     @GetMapping("/user/duplicate")
@@ -87,43 +93,9 @@ class UserController {
             else failResponse()
     }
 
-
     /***************************************************
      *
-     *  유저 정보 by Email.
-     *
-     ***************************************************/
-    @GetMapping("/user")
-    fun getUser(
-        @RequestParam(value = "email") email: String
-    ): ResponseEntity<Any?> {
-        val user = userService.getUserByEmail(email)!!
-
-
-        val mapPostsByCityCategory = if (user.posts.isNotEmpty())
-            mapOf("전체" to user.posts) + user.posts.groupBy({ it.cityCategory }, { it })
-         else
-            user.posts.groupBy({ it.cityCategory }, { it })
-
-        val userVo = UserVo(
-            user.userId,
-            user.email,
-            user.pw,
-            user.postCount,
-            user.followingCount,
-            user.followCount,
-            user.profileImg,
-            mapPostsByCityCategory
-        )
-
-        return ResponseEntity
-            .ok()
-            .body(userVo)
-    }
-
-    /***************************************************
-     *
-     *  로그인.
+     *  [GET] 로그인.
      *
      ***************************************************/
     @GetMapping("/user/login")
@@ -148,21 +120,110 @@ class UserController {
         }
     }
 
-//    @DeleteMapping("/user")
-//    private fun deleteUser(
-//        @RequestParam(value = "postId") postId: Int
-//    ): ResponseEntity<Any> {
-//        val result = userService.deleteByUserId(postId)
-//
-//        return ResponseEntity
-//            .ok()
-//            .body("test")
-//    }
+
+    /***************************************************
+     *
+     *  [GET] 유저 정보 by Email.
+     *
+     ***************************************************/
+    @GetMapping("/user")
+    fun getUser(
+        @RequestParam(value = "email") email: String
+    ): ResponseEntity<Any?> {
+        val user = userService.getUserByEmail(email)!!
+
+        return ResponseEntity
+            .ok()
+            .body(toUserVo(user))
+    }
 
 
     /***************************************************
      *
-     *  게시물 업로드.
+     * [PUT] Update User Bookmark List.
+     *
+     ***************************************************/
+    @PutMapping("/user/bookmark")
+    private fun updateBookMarkUser(
+        @RequestParam("email") email: String,
+        @RequestParam("postId") postId: Int,
+        @RequestParam("placeName") placeName: String
+    ): ResponseEntity<Any> {
+        val prevUser = userService.getUserByEmail(email)!!
+
+        val bookMarkItem = prevUser.bookMarks.find { it.postId == postId }
+
+        if (bookMarkItem == null) {
+            val updatedUser = with(prevUser) {
+                bookMarks += BookMarkModel(
+                    bookmarkId  = 1000,
+                    userId      = prevUser.userId!!,
+                    postId      = postId,
+                    placeName   = placeName
+                )
+                copy(bookMarks = bookMarks).run {
+                    userService.createUser(this)
+                }
+            }
+
+            return ResponseEntity
+                .ok()
+                .body(toUserVo(updatedUser))
+        } else {
+
+            val updateUser = prevUser.copy(
+                bookMarks = prevUser.bookMarks.filter { it.postId != postId }.toMutableList()
+            ).run {
+                userService.createUser(this)
+            }
+
+            bookMarkService.deleteByBookmarkId(bookMarkItem.bookmarkId!!)
+
+            return ResponseEntity
+                .ok()
+                .body(toUserVo(updateUser))
+        }
+    }
+
+
+
+    /***************************************************
+     *
+     * [PUT] Update User Profile.
+     *
+     ***************************************************/
+    @PutMapping("/user")
+    private fun updateUser(
+        @RequestParam("file") file : MultipartFile,
+        @RequestParam("email") email: String
+    ): ResponseEntity<Any> {
+        try {
+            val prevUser = userService.getUserByEmail(email)!!
+
+            val uploadedProfileImg = saveProfileFileGetImagePath(email, file)
+
+            val updatedUserModel = prevUser.copy(
+                profileImg = uploadedProfileImg,
+                posts = prevUser.posts.map {
+                    it.copy(profileImg = uploadedProfileImg)
+                }.toMutableList()
+            )
+
+            val user = userService.createUser(updatedUserModel)
+
+            return ResponseEntity
+                .ok()
+                .body(toUserVo(user))
+        } catch (e: Exception) {
+            return ResponseEntity
+                .ok()
+                .body(e.message)
+        }
+    }
+
+    /***************************************************
+     *
+     *  [POST] 게시물 업로드.
      *
      ***************************************************/
     @PostMapping("/user/upload")
@@ -182,8 +243,11 @@ class UserController {
         @RequestParam("y"                   ) y             : String,
     ): ResponseEntity<Any> {
         try {
+            val prevUser = userService.getUserByEmail(email)!!
+
             val savedPostData = savePostData(
                 email,
+                prevUser.profileImg,
                 content,
                 file,
                 address_name,
@@ -198,34 +262,19 @@ class UserController {
                 y
             )
 
-            val updateUser =
-                with(userService.getUserByEmail(email)!!) {
-                    posts += savedPostData
-                    copy(
-                        posts = posts.asReversed(),
-                        postCount = posts.size
-                    )
-                }.run {
-                    userService.createUser(this)
-                }
-
-            val convertPosts = mapOf("전체" to updateUser.posts) +
-                    updateUser.posts.groupBy({ it.cityCategory }, { it })
-
-            val userVo = UserVo(
-                updateUser.userId,
-                updateUser.email,
-                updateUser.pw,
-                updateUser.postCount,
-                updateUser.followingCount,
-                updateUser.followCount,
-                updateUser.profileImg,
-                convertPosts
-            )
+            val updateUser = with(prevUser) {
+                posts += savedPostData
+                copy(
+                    posts = posts,
+                    postCount = posts.size
+                )
+            }.run {
+                userService.createUser(this)
+            }
 
             return ResponseEntity
                 .ok()
-                .body(userVo)
+                .body(toUserVo(updateUser))
 
         } catch (e: Exception) {
             e.printStackTrace()
@@ -239,56 +288,31 @@ class UserController {
         }
     }
 
-    private fun savePostData(
-        email       : String,
-        content     : String,
-        files       : List<MultipartFile>,
-        address_name: String,
-        category_group_code: String,
-        category_group_name: String,
-        category_name: String,
-        phone       : String,
-        place_name  : String,
-        place_url   : String,
-        road_address_name: String,
-        x           : String,
-        y           : String,
-    ): PostModel {
-        val imgUrls = mutableListOf<String>()
-        val savePath = System.getProperty("user.dir") + IMAGE_SAVE_FOLDER
 
-        if (!File(savePath).exists()) {
-            try {
-                File(savePath).mkdir()
-            } catch (e: Exception) {
-                e.stackTrace
-            }
+    fun toUserVo(
+        userData: UserModel,
+    ): UserVo {
+        val postListToMap =
+            if (userData.posts.isNotEmpty())
+                mapOf("전체" to userData.posts.reversed()) + userData.posts.reversed()
+                    .groupBy({ it.cityCategory }, { it })
+            else
+                mapOf()
+
+        val bookMarkList = userData.bookMarks.map {
+            postService.findByPostId(it.postId)
         }
 
-        for (file in files) {
-            val originFileName = file.originalFilename ?: "Empty"
-            val filePath = "$savePath/$originFileName"
-            file.transferTo(File(filePath))
-
-            imgUrls.add("$BASE_IMAGE_URL${file.originalFilename}")
-        }
-
-        return PostModel(
-            postId = null,
-            cityCategory = LocationUtil.makeCityCategory(address_name),
-            imageUrl = imgUrls,
-            email    = email,
-            content  = content,
-            address_name = address_name,
-            category_group_code = category_group_code,
-            category_group_name = category_group_name,
-            category_name = category_name,
-            phone = phone,
-            place_name = place_name,
-            place_url = place_url,
-            road_address_name = road_address_name,
-            x = x,
-            y = y,
+        return UserVo(
+            userData.userId,
+            userData.email,
+            userData.pw,
+            userData.postCount,
+            userData.followingCount,
+            userData.followCount,
+            userData.profileImg,
+            bookMarkList,
+            postListToMap
         )
     }
 }
