@@ -26,6 +26,9 @@ data class UserModel(
     val pw: String,
 
     @Column
+    val token: String,
+
+    @Column
     val followingCount: Int? = 0,
 
     @Column

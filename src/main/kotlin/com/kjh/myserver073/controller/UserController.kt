@@ -1,5 +1,6 @@
 package com.kjh.myserver073.controller
 
+import com.kjh.myserver073.FirebaseCloudMessageService
 import com.kjh.myserver073.model.*
 import com.kjh.myserver073.service.BookMarkService
 import com.kjh.myserver073.service.PostService
@@ -33,6 +34,9 @@ class UserController {
     @Autowired
     private lateinit var bookMarkService: BookMarkService
 
+    @Autowired
+    private lateinit var fcmService: FirebaseCloudMessageService
+
     private fun failResponse(
         errorMsg: String = "이미 가입된 이메일입니다."
     ) = ResponseEntity
@@ -52,6 +56,7 @@ class UserController {
     private fun createUser(
         @RequestParam("email") email: String,
         @RequestParam("pw")    pw   : String,
+        @RequestParam("token") token: String,
     ): ResponseEntity<UserResponse> {
         val user = userService.getUserByEmail(email)
 
@@ -61,7 +66,8 @@ class UserController {
         userService.createUser(UserModel(
             userId      = null,
             email       = email,
-            pw          = pw
+            pw          = pw,
+            token       = token
         ))
 
         return ResponseEntity
@@ -102,6 +108,7 @@ class UserController {
     private fun reqLogin(
         @RequestParam(value = "email") email: String,
         @RequestParam(value = "pw")    pw   : String,
+        @RequestParam(value = "token") token: String,
     ): ResponseEntity<UserResponse> {
 
         val user = userService.getUserByEmail(email)
@@ -109,14 +116,20 @@ class UserController {
         return when {
             user == null  -> failResponse("가입되지 않은 이메일입니다.")
             user.pw != pw -> failResponse("비밀번호가 맞지 않습니다.")
-            else -> ResponseEntity
-                .ok()
-                .body(
-                    UserResponse(
-                        result = "Success",
-                        errorMsg = "",
+            else -> {
+                if (user.token != token) {
+                    userService.createUser(user.copy(token = token))
+                }
+
+                ResponseEntity
+                    .ok()
+                    .body(
+                        UserResponse(
+                            result = "Success",
+                            errorMsg = "",
+                        )
                     )
-                )
+            }
         }
     }
 
@@ -165,6 +178,11 @@ class UserController {
                     userService.createUser(this)
                 }
             }
+
+            fcmService.sendMessageTo(
+                updatedUser.token,
+                placeName,
+                "북마크에 $placeName 추가되었습니다.")
 
             return ResponseEntity
                 .ok()

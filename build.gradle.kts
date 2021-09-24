@@ -26,6 +26,9 @@ dependencies {
 	runtimeOnly("mysql:mysql-connector-java")
 	implementation("com.h2database:h2")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+
+	implementation("com.google.firebase:firebase-admin:6.8.1")
+	implementation("com.squareup.okhttp3:okhttp:4.9.1")
 }
 
 tasks.withType<KotlinCompile> {
