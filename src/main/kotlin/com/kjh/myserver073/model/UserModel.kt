@@ -47,8 +47,3 @@ data class UserModel(
     @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     val bookMarks: MutableList<BookMarkModel> = mutableListOf()
 )
-
-data class UserResponse(
-    val result: String,
-    val errorMsg: String,
-)

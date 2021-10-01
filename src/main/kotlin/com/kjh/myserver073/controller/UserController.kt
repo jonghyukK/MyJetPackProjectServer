@@ -158,8 +158,8 @@ class UserController {
      ***************************************************/
     @PutMapping("/user/bookmark")
     private fun updateBookMarkUser(
-        @RequestParam("email") email: String,
-        @RequestParam("postId") postId: Int,
+        @RequestParam("email"    ) email    : String,
+        @RequestParam("postId"   ) postId   : Int,
         @RequestParam("placeName") placeName: String
     ): ResponseEntity<Any> {
         val prevUser = userService.getUserByEmail(email)!!
@@ -212,7 +212,7 @@ class UserController {
      ***************************************************/
     @PutMapping("/user")
     private fun updateUser(
-        @RequestParam("file") file : MultipartFile,
+        @RequestParam("file" ) file : MultipartFile,
         @RequestParam("email") email: String
     ): ResponseEntity<Any> {
         try {

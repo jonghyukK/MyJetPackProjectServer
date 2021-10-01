@@ -2,6 +2,9 @@ package com.kjh.myserver073
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.auth.oauth2.GoogleCredentials
+import com.kjh.myserver073.model.FcmModel
+import com.kjh.myserver073.model.Message
+import com.kjh.myserver073.model.Notification
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -20,11 +23,6 @@ import org.springframework.stereotype.Service
 
 @Service
 class FirebaseCloudMessageService {
-
-    companion object {
-        private const val API_URL = "https://fcm.googleapis.com/v1/projects/myjetpackpractice/messages:send"
-    }
-
     private var objectMapper = ObjectMapper()
 
     fun sendMessageTo(
@@ -34,7 +32,7 @@ class FirebaseCloudMessageService {
     ) {
         val client = OkHttpClient()
 
-        val fcmMessage = FcmMessage(
+        val fcmMessage = FcmModel(
             validate_only = false,
             message = Message(
                 token = targetToken,
@@ -54,7 +52,7 @@ class FirebaseCloudMessageService {
         )
 
         val request = Request.Builder()
-            .url(API_URL)
+            .url(FCM_API_URL)
             .post(requestBody)
             .addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
             .addHeader(HttpHeaders.CONTENT_TYPE, "application/json; UTF-8")

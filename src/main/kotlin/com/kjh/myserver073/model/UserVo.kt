@@ -8,13 +8,13 @@ package com.kjh.myserver073.model
  * Description:
  */
 data class UserVo(
-    val userId: Int?,
-    val email: String,
-    val pw: String,
+    val userId   : Int?,
+    val email    : String,
+    val pw       : String,
     val postCount: Int? = 0,
     val followingCount: Int? = 0,
-    val followCount: Int? = 0,
-    val profileImg: String? = null,
-    val bookMarks: List<PostModel> = listOf(),
-    val posts: Map<String, List<PostModel>> = mapOf(),
+    val followCount   : Int? = 0,
+    val profileImg    : String? = null,
+    val bookMarks     : List<PostModel> = listOf(),
+    val posts         : Map<String, List<PostModel>> = mapOf(),
 )

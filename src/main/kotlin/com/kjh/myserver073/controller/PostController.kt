@@ -31,7 +31,7 @@ class PostController {
     @DeleteMapping("post")
     private fun deletePost(
         @RequestParam(value = "postId") postId: Int,
-        @RequestParam(value = "email") email: String,
+        @RequestParam(value = "email" ) email : String,
     ): ResponseEntity<Any> {
         postService.deleteByPostId(postId)
 
@@ -63,7 +63,7 @@ class PostController {
 
     @GetMapping("post")
     private fun getPosts(
-        @RequestParam(value = "city") cityName: String? = null,
+        @RequestParam(value = "city"     ) cityName : String? = null,
         @RequestParam(value = "placeName") placeName: String? = null
     ): ResponseEntity<Any> {
         if (cityName != null) {
