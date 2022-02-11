@@ -1,6 +1,6 @@
 package com.kjh.myserver073.repository
 
-import com.kjh.myserver073.model.PostModel
+import com.kjh.myserver073.model.entity.NewPostModel
 import org.springframework.data.repository.CrudRepository
 
 /**
@@ -10,16 +10,9 @@ import org.springframework.data.repository.CrudRepository
  *
  * Description:
  */
-interface PostRepository: CrudRepository<PostModel, Int> {
+interface PostRepository: CrudRepository<NewPostModel, Int> {
 
-    fun deleteByPostId(postId: Int): Int
+    override fun findAll(): List<NewPostModel>
 
-    @Override
-    override fun findAll(): List<PostModel>
-
-    fun findByPostId(postId: Int): PostModel
-
-    fun findByCityCategory(cityName: String): List<PostModel>
-
-    fun findByPlaceName(placeName: String): List<PostModel>
+    fun findAllByPlaceName(placeName: String): List<NewPostModel>
 }

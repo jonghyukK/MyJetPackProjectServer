@@ -1,6 +1,6 @@
 package com.kjh.myserver073.repository
 
-import com.kjh.myserver073.model.BookMarkModel
+import com.kjh.myserver073.model.entity.NewBookMarkModel
 import org.springframework.data.repository.CrudRepository
 import java.util.*
 import javax.transaction.Transactional
@@ -12,15 +12,15 @@ import javax.transaction.Transactional
  *
  * Description:
  */
-interface BookMarkRepository: CrudRepository<BookMarkModel, Int> {
+interface BookMarkRepository: CrudRepository<NewBookMarkModel, Int> {
 
-    override fun findById(id: Int): Optional<BookMarkModel>
-
-    @Transactional
-    fun findByUserId(userId: Int): List<BookMarkModel>
+    override fun findById(id: Int): Optional<NewBookMarkModel>
 
     @Transactional
-    override fun findAll(): List<BookMarkModel>
+    fun findByUserId(userId: Int): List<NewBookMarkModel>
+
+    @Transactional
+    override fun findAll(): List<NewBookMarkModel>
 
     @Transactional
     fun deleteByBookmarkId(bookmarkId: Int)
