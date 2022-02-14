@@ -44,12 +44,12 @@ data class NewUserModel(
         @Column
         val profileImg: String? = null,
 
-        @OneToMany(fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
+        @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
         @JoinColumn(name = "user_id")
         val posts: List<NewPostModel> = listOf(),
 
-        @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
-        val bookMarks: List<NewBookMarkModel> = listOf(),
+        @OneToMany(fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
+        val bookMarks: List<NewPostModel> = listOf(),
 
         val isFollowing: Boolean? = null,
 )

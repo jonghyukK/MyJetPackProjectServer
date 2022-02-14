@@ -2,6 +2,7 @@ package com.kjh.myserver073.service
 
 import com.kjh.myserver073.model.entity.NewPostModel
 import com.kjh.myserver073.repository.PostRepository
+import com.kjh.myserver073.repository.UserRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -16,5 +17,13 @@ class NewPostServiceImpl constructor(
 
     override fun findAllByPlaceName(placeName: String): List<NewPostModel> {
         return postRepository.findAllByPlaceName(placeName).reversed()
+    }
+
+    override fun findByPostId(postId: Int): NewPostModel {
+        return postRepository.findByPostId(postId)
+    }
+
+    override fun findAllByUserId(userId: Int): List<NewPostModel> {
+        return postRepository.findAllByUserId(userId)
     }
 }

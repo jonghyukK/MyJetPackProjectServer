@@ -12,6 +12,9 @@ data class NewPostModel(
         @Column(name = "post_id")
         val postId: Int? = null,
 
+        @Column(name = "user_id")
+        val userId: Int? = null,
+
         @Column
         val email: String,
 
