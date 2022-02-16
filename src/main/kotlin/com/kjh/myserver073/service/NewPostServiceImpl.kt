@@ -4,6 +4,7 @@ import com.kjh.myserver073.model.entity.NewPostModel
 import com.kjh.myserver073.repository.PostRepository
 import com.kjh.myserver073.repository.UserRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
@@ -24,6 +25,10 @@ class NewPostServiceImpl constructor(
     }
 
     override fun findAllByUserId(userId: Int): List<NewPostModel> {
-        return postRepository.findAllByUserId(userId)
+        return postRepository.findAllByUserIdOrderByPostIdDesc(userId)
+    }
+
+    override fun findAllByOrderByCreatedAt(pageable: Pageable): List<NewPostModel> {
+        return postRepository.findAllByOrderByCreatedAt(pageable)
     }
 }

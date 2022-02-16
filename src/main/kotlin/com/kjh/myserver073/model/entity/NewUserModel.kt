@@ -49,6 +49,7 @@ data class NewUserModel(
         val posts: List<NewPostModel> = listOf(),
 
         @OneToMany(fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
+        @OrderBy("created_at")
         val bookMarks: List<NewPostModel> = listOf(),
 
         val isFollowing: Boolean? = null,

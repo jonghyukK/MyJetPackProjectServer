@@ -163,16 +163,16 @@ class NewUserController {
             return ResponseEntity
                 .ok()
                 .body(
-                    NewUserResponse(
+                    BookMarkResponse(
                         result = true,
-                        data = updatedUser.bookMarks
+                        bookMarks = updatedUser.bookMarks
                     )
                 )
         } catch(e: Exception) {
             return ResponseEntity
                 .ok()
                 .body(
-                    NewUserResponse(
+                    BookMarkResponse(
                         result = false,
                         errorMsg = "Error Update BookMark."
                     )

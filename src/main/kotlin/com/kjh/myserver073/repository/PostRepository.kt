@@ -1,6 +1,7 @@
 package com.kjh.myserver073.repository
 
 import com.kjh.myserver073.model.entity.NewPostModel
+import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.CrudRepository
 
 /**
@@ -18,5 +19,7 @@ interface PostRepository: CrudRepository<NewPostModel, Int> {
 
     fun findByPostId(postId: Int): NewPostModel
 
-    fun findAllByUserId(userId: Int): List<NewPostModel>
+    fun findAllByUserIdOrderByPostIdDesc(userId: Int): List<NewPostModel>
+
+    fun findAllByOrderByCreatedAt(pageable: Pageable): List<NewPostModel>
 }

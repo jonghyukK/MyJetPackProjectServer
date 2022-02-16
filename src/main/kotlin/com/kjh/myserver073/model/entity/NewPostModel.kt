@@ -1,10 +1,14 @@
 package com.kjh.myserver073.model.entity
 
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.time.LocalDateTime
 import javax.persistence.*
 
 
 @Entity
 @Table(name = "posts")
+@EntityListeners(AuditingEntityListener::class)
 data class NewPostModel(
 
         @Id
@@ -54,5 +58,9 @@ data class NewPostModel(
         @ElementCollection(fetch = FetchType.EAGER)
         val imageUrl: List<String>? = listOf(),
 
-        val isBookmarked: Boolean = false
+        val isBookmarked: Boolean = false,
+
+        @CreatedDate
+        @Column(name = "created_at")
+        var createdAt: LocalDateTime = LocalDateTime.now(),
 )

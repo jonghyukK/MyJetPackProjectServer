@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import java.io.File
+import java.time.LocalDateTime
 import javax.transaction.Transactional
 
 
@@ -43,25 +44,25 @@ class NewUserServiceImpl constructor(
     override fun getMyUser(email: String): NewUserModel {
         val user = userRepository.findUserByEmail(email)!!
 
-        val convertPosts = postRepository.findAllByUserId(user.userId!!).map { post ->
+        val convertPosts = postRepository.findAllByUserIdOrderByPostIdDesc(user.userId!!).map { post ->
             post.copy(
-                isBookmarked = user.bookMarks.find { it.postId == post.postId } != null
+                isBookmarked = user.bookMarks.find { it.placeName == post.placeName } != null
             )
         }
 
         return user.copy(
-            posts = convertPosts.reversed()
+            posts = convertPosts
         )
     }
 
     @Transactional
     override fun getUserByEmail(email: String, myEmail: String): NewUserModel {
         val targetUser = userRepository.findUserByEmail(email)!!
-        val myUser     = getMyUser(myEmail)
+        val myUser     = userRepository.findUserByEmail(myEmail)!!
 
-        val convertTargetUserPosts = postRepository.findAllByUserId(targetUser.userId!!).map { post ->
+        val convertTargetUserPosts = postRepository.findAllByUserIdOrderByPostIdDesc(targetUser.userId!!).map { post ->
             post.copy(
-                isBookmarked = myUser.bookMarks.find { it.postId == post.postId } != null
+                isBookmarked = myUser.bookMarks.find { it.placeName == post.placeName } != null
             )
         }
 
@@ -73,13 +74,13 @@ class NewUserServiceImpl constructor(
 
     @Transactional
     override fun updateBookmark(email: String, postId: Int): NewUserModel {
-        val postData = postRepository.findByPostId(postId)
         val userData = userRepository.findUserByEmail(email)!!
+        val postData = postRepository.findByPostId(postId)
 
-        val newBookmarks = if (userData.bookMarks.find { it.postId == postId } == null) {
-            userData.bookMarks + postData
+        val newBookmarks = if (userData.bookMarks.find { it.placeName == postData.placeName } == null) {
+            userData.bookMarks + postData.copy(isBookmarked = true, createdAt = LocalDateTime.now())
         } else {
-            userData.bookMarks.filter { it.postId != postId }
+            userData.bookMarks.filter { it.placeName != postData.placeName }
         }
 
         return createUser(
@@ -118,14 +119,16 @@ class NewUserServiceImpl constructor(
             "$BASE_IMAGE_URL${originFileName}"
         }
 
+        val convertPosts = postRepository.saveAll(userData.posts.map {
+            it.copy(profileImg = tempProfileImg)
+        }).toList()
+
         return createUser(
             userData.copy(
                 profileImg = tempProfileImg,
-                nickName   = if (nickName == "null") userData.nickName else nickName,
-                introduce  = if (introduce == "null") userData.introduce else introduce,
-                posts      = userData.posts.map {
-                    it.copy(profileImg = tempProfileImg)
-                }
+                nickName = if (nickName == "null") userData.nickName else nickName,
+                introduce = if (introduce == "null") userData.introduce else introduce,
+                posts = convertPosts
             )
         )
     }
@@ -143,7 +146,7 @@ class NewUserServiceImpl constructor(
         }
 
         createUser(myUserData.copy(
-            followingList = newFollowingList,
+            followingList  = newFollowingList,
             followingCount = newFollowingList.size
         ))
 
@@ -211,7 +214,7 @@ class NewUserServiceImpl constructor(
 
         return createUser(
             user.copy(
-                posts     = user.posts + newPostItem,
+                posts     = listOf(newPostItem) + user.posts,
                 postCount = user.posts.size + 1
             )
         )
