@@ -1,8 +1,9 @@
 package com.kjh.myserver073.service
 
 import com.kjh.myserver073.controller.ValidateUser
-import com.kjh.myserver073.model.entity.NewPostModel
-import com.kjh.myserver073.model.entity.NewUserModel
+import com.kjh.myserver073.model.vo.PostVo
+import com.kjh.myserver073.model.vo.UserVo
+import com.kjh.myserver073.model.entity.User
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import javax.transaction.Transactional
@@ -16,16 +17,16 @@ interface NewUserService {
     fun validateLogin(email: String, pw: String): ValidateUser
 
     @Transactional
-    fun updateBookmark(email: String, postId: Int): NewUserModel
+    fun getMyUser(email: String): UserVo
 
     @Transactional
-    fun getMyUser(email: String): NewUserModel
+    fun getUserByEmail(email: String, myEmail: String): UserVo
 
     @Transactional
-    fun getUserByEmail(email: String, myEmail: String): NewUserModel
+    fun updateBookmark(email: String, postId: Int): List<PostVo>
 
     @Transactional
-    fun createUser(newUserModel: NewUserModel): NewUserModel
+    fun createUser(user: User): User
 
     @Transactional
     fun updateUser(
@@ -33,10 +34,10 @@ interface NewUserService {
         email: String,
         nickName: String,
         introduce: String?
-    ): NewUserModel
+    ): UserVo
 
     @Transactional
-    fun updateFollowOrNot(myEmail: String, targetEmail: String): NewUserModel
+    fun updateFollowOrNot(myEmail: String, targetEmail: String): UserVo
 
     @Transactional
     fun uploadPost(
@@ -48,5 +49,5 @@ interface NewUserService {
         placeRoadAddress: String,
         x: String,
         y: String
-    ): NewUserModel
+    ): UserVo
 }

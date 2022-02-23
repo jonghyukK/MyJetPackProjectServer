@@ -1,9 +1,9 @@
 package com.kjh.myserver073.model
 
-import com.kjh.myserver073.model.entity.NewPostModel
+import com.kjh.myserver073.model.vo.PostVo
 
 data class BookMarkResponse(
     val result: Boolean,
-    val bookMarks: List<NewPostModel> = listOf(),
+    val bookMarks: List<PostVo> = listOf(),
     val errorMsg: String? = null
 )

@@ -3,8 +3,15 @@ package com.kjh.myserver073.service
 import com.kjh.myserver073.BASE_IMAGE_URL
 import com.kjh.myserver073.IMAGE_SAVE_FOLDER
 import com.kjh.myserver073.controller.ValidateUser
-import com.kjh.myserver073.model.entity.NewPostModel
-import com.kjh.myserver073.model.entity.NewUserModel
+import com.kjh.myserver073.mapper.Mappers
+import com.kjh.myserver073.model.vo.PostVo
+import com.kjh.myserver073.model.vo.UserVo
+import com.kjh.myserver073.model.entity.Bookmark
+import com.kjh.myserver073.model.entity.Place
+import com.kjh.myserver073.model.entity.Post
+import com.kjh.myserver073.model.entity.User
+import com.kjh.myserver073.repository.BookmarkRepository
+import com.kjh.myserver073.repository.PlaceRepository
 import com.kjh.myserver073.repository.PostRepository
 import com.kjh.myserver073.repository.UserRepository
 import com.kjh.myserver073.utils.TimeFormatter
@@ -13,14 +20,15 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import java.io.File
-import java.time.LocalDateTime
 import javax.transaction.Transactional
 
 
 @Service
 class NewUserServiceImpl constructor(
         @Autowired private val userRepository: UserRepository,
-        @Autowired private val postRepository: PostRepository
+        @Autowired private val postRepository: PostRepository,
+        @Autowired private val bookmarkRepository: BookmarkRepository,
+        @Autowired private val placeRepository: PlaceRepository
 ): NewUserService {
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
@@ -41,57 +49,60 @@ class NewUserServiceImpl constructor(
     }
 
     @Transactional
-    override fun getMyUser(email: String): NewUserModel {
-        val user = userRepository.findUserByEmail(email)!!
-
-        val convertPosts = postRepository.findAllByUserIdOrderByPostIdDesc(user.userId!!).map { post ->
-            post.copy(
-                isBookmarked = user.bookMarks.find { it.placeName == post.placeName } != null
-            )
+    override fun getMyUser(email: String): UserVo {
+        val user  = userRepository.findUserByEmail(email)!!
+        val posts = postRepository.findAllByUserUserIdOrderByCreatedAtDesc(user.userId!!)
+        val bookmarks = bookmarkRepository.findAllByUserId(user.userId).map { bookmark ->
+            postRepository.findById(bookmark.postId).get()
         }
 
-        return user.copy(
-            posts = convertPosts
-        )
+        return Mappers.makeUserVoWithPosts(user, posts, bookmarks)
     }
 
     @Transactional
-    override fun getUserByEmail(email: String, myEmail: String): NewUserModel {
+    override fun getUserByEmail(email: String, myEmail: String): UserVo {
         val targetUser = userRepository.findUserByEmail(email)!!
         val myUser     = userRepository.findUserByEmail(myEmail)!!
+        val targetUserPosts = postRepository.findAllByUserUserIdOrderByCreatedAtDesc(targetUser.userId!!)
 
-        val convertTargetUserPosts = postRepository.findAllByUserIdOrderByPostIdDesc(targetUser.userId!!).map { post ->
-            post.copy(
-                isBookmarked = myUser.bookMarks.find { it.placeName == post.placeName } != null
-            )
+        val bookmarks = bookmarkRepository.findAllByUserId(myUser.userId!!).map { bookmark ->
+            postRepository.findById(bookmark.postId).get()
         }
 
-        return targetUser.copy(
-            posts       = convertTargetUserPosts,
-            isFollowing = myUser.followingList.contains(targetUser.email)
+        return Mappers.makeUserVoWithPosts(
+            targetUser.copy(isFollowing = myUser.followingList.contains(targetUser.email)),
+            targetUserPosts,
+            bookmarks
         )
     }
 
     @Transactional
-    override fun updateBookmark(email: String, postId: Int): NewUserModel {
-        val userData = userRepository.findUserByEmail(email)!!
-        val postData = postRepository.findByPostId(postId)
+    override fun updateBookmark(email: String, postId: Int): List<PostVo> {
+        val user = userRepository.findUserByEmail(email)!!
 
-        val newBookmarks = if (userData.bookMarks.find { it.placeName == postData.placeName } == null) {
-            userData.bookMarks + postData.copy(isBookmarked = true, createdAt = LocalDateTime.now())
+        val existBookmark = bookmarkRepository.findByUserIdAndPostId(user.userId!!, postId)
+
+        if (existBookmark == null) {
+            bookmarkRepository.save(Bookmark(
+                bookmarkId = null,
+                userId     = user.userId,
+                postId     = postId)
+            )
         } else {
-            userData.bookMarks.filter { it.placeName != postData.placeName }
+            bookmarkRepository.deleteByBookmarkId(existBookmark.bookmarkId!!)
         }
 
-        return createUser(
-            userData.copy(
-                bookMarks = newBookmarks
-            )
-        )
+        val bookmarks = bookmarkRepository.findAllByUserId(user.userId).map { bookmark ->
+            postRepository.findById(bookmark.postId).get()
+        }
+
+        return Mappers.postListToPostVoList(bookmarks).map {
+            it.copy(isBookmarked = true)
+        }
     }
 
     @Transactional
-    override fun createUser(newUserModel: NewUserModel) = userRepository.save(newUserModel)
+    override fun createUser(user: User) = userRepository.save(user)
 
     @Transactional
     override fun updateUser(
@@ -99,8 +110,8 @@ class NewUserServiceImpl constructor(
         email       : String,
         nickName    : String,
         introduce   : String?
-    ): NewUserModel {
-        val userData = getMyUser(email)
+    ): UserVo {
+        val user = userRepository.findUserByEmail(email)!!
 
         val tempProfileImg = file?.let {
             val profileSavePath = System.getProperty("user.dir") + IMAGE_SAVE_FOLDER
@@ -119,23 +130,25 @@ class NewUserServiceImpl constructor(
             "$BASE_IMAGE_URL${originFileName}"
         }
 
-        val convertPosts = postRepository.saveAll(userData.posts.map {
-            it.copy(profileImg = tempProfileImg)
-        }).toList()
-
-        return createUser(
-            userData.copy(
+        val convertUser = createUser(
+            user.copy(
                 profileImg = tempProfileImg,
-                nickName = if (nickName == "null") userData.nickName else nickName,
-                introduce = if (introduce == "null") userData.introduce else introduce,
-                posts = convertPosts
+                nickName   = if (nickName == "null") user.nickName else nickName,
+                introduce  = if (introduce == "null") user.introduce else introduce
             )
         )
+
+        val posts = postRepository.findAllByUserUserIdOrderByCreatedAtDesc(user.userId!!)
+        val bookmarks = bookmarkRepository.findAllByUserId(user.userId).map {
+            postRepository.findById(it.postId).get()
+        }
+
+        return Mappers.makeUserVoWithPosts(convertUser, posts, bookmarks)
     }
 
     @Transactional
-    override fun updateFollowOrNot(myEmail: String, targetEmail: String): NewUserModel {
-        val myUserData = getMyUser(myEmail)
+    override fun updateFollowOrNot(myEmail: String, targetEmail: String): UserVo {
+        val myUserData = userRepository.findUserByEmail(myEmail)!!
         val isFollowed = myUserData.followingList.contains(targetEmail)
 
         // My Logic.
@@ -151,17 +164,25 @@ class NewUserServiceImpl constructor(
         ))
 
         // Target Logic.
-        val targetUser = getUserByEmail(targetEmail, myEmail)
+        val targetUser = userRepository.findUserByEmail(targetEmail)!!
         val newFollowList = if (isFollowed) {
             targetUser.followList.filter { it != myEmail }
         } else {
             targetUser.followList + myEmail
         }
 
-        return createUser(targetUser.copy(
+        val convertUser = createUser(targetUser.copy(
             followList  = newFollowList,
             followCount = newFollowList.size
         ))
+
+        return Mappers.makeUserVoWithPosts(
+            convertUser.copy(isFollowing = !isFollowed),
+            postRepository.findAllByUserUserId(targetUser.userId!!),
+            bookmarkRepository.findAllByUserId(myUserData.userId!!).map {
+                postRepository.findById(it.postId).get()
+            }
+        )
     }
 
     override fun uploadPost(
@@ -173,8 +194,8 @@ class NewUserServiceImpl constructor(
         placeRoadAddress: String,
         x: String,
         y: String
-    ): NewUserModel {
-        val user = getMyUser(email)
+    ): UserVo {
+        val user = userRepository.findUserByEmail(email)!!
 
         val imgUrls = mutableListOf<String>()
         val savePath = System.getProperty("user.dir") + IMAGE_SAVE_FOLDER
@@ -195,28 +216,49 @@ class NewUserServiceImpl constructor(
             imgUrls.add("$BASE_IMAGE_URL${item.originalFilename}")
         }
 
-        val newPostItem = NewPostModel(
+        val existPlace = placeRepository.findByPlaceName(placeName)
+        val updatedPlace: Place
+
+        if (existPlace == null) {
+            updatedPlace = placeRepository.save(Place(
+                placeId     = placeName,
+                cityName    = placeAddress.split(" ")[0],
+                subCityName = placeAddress.split(" ")[1],
+                placeName   = placeName,
+                placeAddress     = placeAddress,
+                placeRoadAddress = placeRoadAddress,
+                x = x,
+                y = y,
+                uploadCount = 1,
+                placeImg = imgUrls[0],
+            ))
+        } else {
+            updatedPlace = placeRepository.save(
+                existPlace.copy(
+                    uploadCount = existPlace.uploadCount + 1,
+                    placeImg = imgUrls[0]
+                )
+            )
+        }
+
+        val newPostItem = Post(
             postId      = null,
-            email       = email,
-            nickName    = user.nickName,
             content     = content,
-            cityName    = placeAddress.split(" ")[0],
-            subCityName = placeAddress.split(" ")[1],
-            placeName   = placeName,
-            placeAddress      = placeAddress,
-            placeRoadAddress = placeRoadAddress,
-            x = x,
-            y = y,
-            profileImg  = user.profileImg,
             createdDate = TimeFormatter.makeDateTimeFormat(),
             imageUrl    = imgUrls,
+            user        = user,
+            place       = updatedPlace
         )
 
-        return createUser(
-            user.copy(
-                posts     = listOf(newPostItem) + user.posts,
-                postCount = user.posts.size + 1
-            )
-        )
+        postRepository.save(newPostItem)
+
+        val posts = postRepository.findAllByUserUserIdOrderByCreatedAtDesc(user.userId!!)
+        val newUser = createUser(user.copy(postCount = posts.size))
+        val bookmarks = bookmarkRepository.findAllByUserId(user.userId).map {
+            postRepository.findById(it.postId).get()
+        }
+
+
+        return Mappers.makeUserVoWithPosts(newUser, posts, bookmarks)
     }
 }

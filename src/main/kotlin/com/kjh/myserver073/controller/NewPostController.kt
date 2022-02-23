@@ -1,7 +1,6 @@
 package com.kjh.myserver073.controller
 
-import com.kjh.myserver073.model.PlaceModel
-import com.kjh.myserver073.model.PlaceResponse
+import com.kjh.myserver073.mapper.Mappers
 import com.kjh.myserver073.model.PostResponse
 import com.kjh.myserver073.service.NewPostService
 import com.kjh.myserver073.service.NewUserService
@@ -26,37 +25,6 @@ class NewPostController {
 
     /***************************************************
      *
-     *  [GET] Get Posts By "PlaceName"
-     *
-     ***************************************************/
-    @GetMapping("post")
-    private fun getPostsByPlaceName(
-        @RequestParam("myEmail"  ) myEmail  : String,
-        @RequestParam("placeName") placeName: String
-    ): ResponseEntity<PlaceResponse> {
-        val posts = postService.findAllByPlaceName(placeName)
-
-        val placeItem = PlaceModel(
-            placeName        = posts[0].placeName,
-            placeAddress     = posts[0].placeAddress,
-            placeRoadAddress = posts[0].placeRoadAddress,
-            cityName         = posts[0].cityName,
-            subCityName      = posts[0].subCityName,
-            x     = posts[0].x,
-            y     = posts[0].y,
-            posts = posts
-        )
-
-        return ResponseEntity
-            .ok()
-            .body(PlaceResponse(
-                result = true,
-                data = placeItem
-            ))
-    }
-
-    /***************************************************
-     *
      *  [GET] Get Posts by created
      *
      ***************************************************/
@@ -69,21 +37,28 @@ class NewPostController {
         try {
             val pageRequest = PageRequest.of(page, size)
 
-            val posts = postService.findAllByOrderByCreatedAt(pageRequest)
-            val user = userService.getMyUser(myEmail)
+            val posts = postService.findAllRecentPosts(pageRequest)
 
-            val convertPosts = posts.map { post ->
-                post.copy(
-                    isBookmarked = user.bookMarks.find { it.placeName == post.placeName } != null
-                )
-            }
+//            val posts = postService.findAllByOrderByCreatedAt(pageRequest)
+//            val user = userService.getMyUser(myEmail)
+
+//            val convertPosts = posts.map { post ->
+//                post.copy(
+////                    isBookmarked = user.bookMarks.find { it.placeName == post.placeName } != null
+//                )
+//            }
+
+//            val posts = postService.findAll()
+//            val str = placeService.findAll().map {
+//                it.copy(posts = posts)
+//            }
 
             return ResponseEntity
                 .ok()
                 .body(
                     PostResponse(
                         result = true,
-                        data = convertPosts
+                        data = Mappers.postListToPostVoList(posts)
                     )
                 )
         } catch (e: Exception) {

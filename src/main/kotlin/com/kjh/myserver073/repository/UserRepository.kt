@@ -1,6 +1,6 @@
 package com.kjh.myserver073.repository
 
-import com.kjh.myserver073.model.entity.NewUserModel
+import com.kjh.myserver073.model.entity.User
 import org.springframework.data.repository.CrudRepository
 
 /**
@@ -11,7 +11,7 @@ import org.springframework.data.repository.CrudRepository
  * Description:
  */
 
-interface UserRepository: CrudRepository<NewUserModel, Int> {
+interface UserRepository: CrudRepository<User, Int> {
 
-    fun findUserByEmail(email: String): NewUserModel?
+    fun findUserByEmail(email: String): User?
 }

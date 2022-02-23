@@ -1,19 +1,21 @@
 package com.kjh.myserver073.service
 
-import com.kjh.myserver073.model.entity.NewPostModel
+import com.kjh.myserver073.model.entity.Post
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
 interface NewPostService {
 
-    fun findAll(): List<NewPostModel>
+    fun findAll(): List<Post>
 
-    fun findAllByPlaceName(placeName: String): List<NewPostModel>
+    fun findAllRecentPosts(pageable: Pageable): List<Post>
 
-    fun findByPostId(postId: Int): NewPostModel
-
-    fun findAllByUserId(userId: Int): List<NewPostModel>
-
-    fun findAllByOrderByCreatedAt(pageable: Pageable): List<NewPostModel>
+//    fun findAllByPlaceName(placeName: String): List<Post>
+//
+//    fun findByPostId(postId: Int): Post
+//
+//    fun findAllByUserId(userId: Int): List<Post>
+//
+//    fun findAllByOrderByCreatedAt(pageable: Pageable): List<Post>
 }

@@ -1,6 +1,6 @@
 package com.kjh.myserver073.repository
 
-import com.kjh.myserver073.model.entity.NewPostModel
+import com.kjh.myserver073.model.entity.Post
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.CrudRepository
 
@@ -11,15 +11,15 @@ import org.springframework.data.repository.CrudRepository
  *
  * Description:
  */
-interface PostRepository: CrudRepository<NewPostModel, Int> {
+interface PostRepository: CrudRepository<Post, Int> {
 
-    override fun findAll(): List<NewPostModel>
+    fun findAllByUserUserIdOrderByCreatedAtDesc(userid: Int): List<Post>
 
-    fun findAllByPlaceName(placeName: String): List<NewPostModel>
+    fun findAllByUserUserId(userId: Int): List<Post>
 
-    fun findByPostId(postId: Int): NewPostModel
+    fun findAllByPlacePlaceId(placeId: String): List<Post>
 
-    fun findAllByUserIdOrderByPostIdDesc(userId: Int): List<NewPostModel>
+    fun findAllByOrderByCreatedAtDesc(pageable: Pageable): List<Post>
 
-    fun findAllByOrderByCreatedAt(pageable: Pageable): List<NewPostModel>
+    override fun findAll(): List<Post>
 }

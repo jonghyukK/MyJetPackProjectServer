@@ -1,7 +1,7 @@
 package com.kjh.myserver073.controller
 
 import com.kjh.myserver073.model.*
-import com.kjh.myserver073.model.entity.NewUserModel
+import com.kjh.myserver073.model.entity.User
 import com.kjh.myserver073.service.NewUserService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -41,7 +41,7 @@ class NewUserController {
 
             if (userValidation == ValidateUser.VALID) {
                 userService.createUser(
-                    NewUserModel(
+                    User(
                         userId   = null,
                         email    = email,
                         pw       = pw,
@@ -155,20 +155,18 @@ class NewUserController {
     @PutMapping("/user/bookmark")
     private fun updateBookmark(
         @RequestParam("postId") postId: Int,
-        @RequestParam("email" ) email : String
+        @RequestParam("email") email: String
     ): ResponseEntity<Any> {
         try {
-            val updatedUser = userService.updateBookmark(email, postId)
-
             return ResponseEntity
                 .ok()
                 .body(
                     BookMarkResponse(
                         result = true,
-                        bookMarks = updatedUser.bookMarks
+                        bookMarks = userService.updateBookmark(email, postId)
                     )
                 )
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             return ResponseEntity
                 .ok()
                 .body(
