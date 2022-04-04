@@ -9,4 +9,6 @@ interface PlaceRepository: CrudRepository<Place, Int> {
     fun findByPlaceName(placeName: String): Place?
 
     fun findAllByOrderByUploadCountDesc(): List<Place>
+
+    fun findAllBySubCityName(subCityName: String): List<Place>
 }

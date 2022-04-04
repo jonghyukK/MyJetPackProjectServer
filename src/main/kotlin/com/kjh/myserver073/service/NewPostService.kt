@@ -11,6 +11,11 @@ interface NewPostService {
 
     fun findAllRecentPosts(pageable: Pageable): List<Post>
 
+    fun findByPlaceSubCityName(subCityName: String): List<Post>
+
+
+
+
 //    fun findAllByPlaceName(placeName: String): List<Post>
 //
 //    fun findByPostId(postId: Int): Post

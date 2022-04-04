@@ -20,3 +20,9 @@ data class PlaceResponse(
     val data: PlaceVo? = null,
     val errorMsg: String? = null
 )
+
+data class PlaceListResponse(
+    val result: Boolean,
+    val data: List<PlaceVo> = listOf(),
+    val errorMsg: String? = null
+)

@@ -10,6 +10,7 @@ import com.kjh.myserver073.model.entity.Bookmark
 import com.kjh.myserver073.model.entity.Place
 import com.kjh.myserver073.model.entity.Post
 import com.kjh.myserver073.model.entity.User
+import com.kjh.myserver073.model.vo.FollowVo
 import com.kjh.myserver073.repository.BookmarkRepository
 import com.kjh.myserver073.repository.PlaceRepository
 import com.kjh.myserver073.repository.PostRepository
@@ -147,7 +148,7 @@ class NewUserServiceImpl constructor(
     }
 
     @Transactional
-    override fun updateFollowOrNot(myEmail: String, targetEmail: String): UserVo {
+    override fun updateFollowOrNot(myEmail: String, targetEmail: String): FollowVo {
         val myUserData = userRepository.findUserByEmail(myEmail)!!
         val isFollowed = myUserData.followingList.contains(targetEmail)
 
@@ -158,7 +159,7 @@ class NewUserServiceImpl constructor(
             myUserData.followingList + targetEmail
         }
 
-        createUser(myUserData.copy(
+        val updatedMyUser = createUser(myUserData.copy(
             followingList  = newFollowingList,
             followingCount = newFollowingList.size
         ))
@@ -171,17 +172,30 @@ class NewUserServiceImpl constructor(
             targetUser.followList + myEmail
         }
 
-        val convertUser = createUser(targetUser.copy(
+        val updatedTargetUser = createUser(targetUser.copy(
             followList  = newFollowList,
             followCount = newFollowList.size
         ))
 
-        return Mappers.makeUserVoWithPosts(
-            convertUser.copy(isFollowing = !isFollowed),
-            postRepository.findAllByUserUserId(targetUser.userId!!),
-            bookmarkRepository.findAllByUserId(myUserData.userId!!).map {
+        val myProfile = Mappers.makeUserVoWithPosts(
+            updatedMyUser,
+            postRepository.findAllByUserUserIdOrderByCreatedAtDesc(myUserData.userId!!),
+            bookmarkRepository.findAllByUserId(myUserData.userId).map {
                 postRepository.findById(it.postId).get()
             }
+        )
+
+        val targetProfile = Mappers.makeUserVoWithPosts(
+            updatedTargetUser.copy(isFollowing = !isFollowed),
+            postRepository.findAllByUserUserIdOrderByCreatedAtDesc(targetUser.userId!!),
+            bookmarkRepository.findAllByUserId(myUserData.userId).map {
+                postRepository.findById(it.postId).get()
+            }
+        )
+
+        return FollowVo(
+            myProfile = myProfile,
+            targetProfile = targetProfile
         )
     }
 

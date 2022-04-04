@@ -163,7 +163,7 @@ class NewUserController {
                 .body(
                     BookMarkResponse(
                         result = true,
-                        bookMarks = userService.updateBookmark(email, postId)
+                        data = userService.updateBookmark(email, postId)
                     )
                 )
         } catch (e: Exception) {
@@ -220,12 +220,14 @@ class NewUserController {
         @RequestParam("myEmail"    ) myEmail    : String,
         @RequestParam("targetEmail") targetEmail: String
     ) = try {
+        val followResult = userService.updateFollowOrNot(myEmail, targetEmail)
+
         ResponseEntity
             .ok()
             .body(
                 NewUserResponse(
                     result = true,
-                    data = userService.updateFollowOrNot(myEmail, targetEmail)
+                    data = followResult
                 )
             )
 

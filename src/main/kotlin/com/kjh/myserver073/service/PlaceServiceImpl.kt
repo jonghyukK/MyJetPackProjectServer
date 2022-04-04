@@ -3,6 +3,7 @@ package com.kjh.myserver073.service
 import com.kjh.myserver073.mapper.Mappers
 import com.kjh.myserver073.model.PlaceVo
 import com.kjh.myserver073.model.entity.Place
+import com.kjh.myserver073.model.entity.Post
 import com.kjh.myserver073.model.vo.RankingVo
 import com.kjh.myserver073.repository.PlaceRepository
 import com.kjh.myserver073.repository.PostRepository
@@ -30,5 +31,19 @@ class PlaceServiceImpl constructor(
         val places = placeRepository.findAllByOrderByUploadCountDesc()
 
         return Mappers.placeToRankingVo(places)
+    }
+
+    override fun findAllBySubCityName(subCityName: String): List<PlaceVo> {
+        val placeList = placeRepository.findAllBySubCityName(subCityName)
+        val postListByPlace = placeList.map { place ->
+            Mappers.placeToPlaceVoWithPosts(place, postRepository.findAllByPlacePlaceId(place.placeName))
+        }
+
+        return postListByPlace
+
+//        val str = postRepository.findAllByPlaceSubCityNameOrderByCreatedAtDesc(subCityName)
+//            .groupBy { it.place.placeName }
+//
+//        return str
     }
 }

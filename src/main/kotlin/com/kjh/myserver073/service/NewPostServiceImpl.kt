@@ -20,6 +20,11 @@ class NewPostServiceImpl constructor(
 
         return posts
     }
+
+    override fun findByPlaceSubCityName(subCityName: String): List<Post> {
+        return postRepository.findAllByPlaceSubCityNameOrderByCreatedAtDesc(subCityName)
+    }
+
 //
 //    override fun findAllByPlaceName(placeName: String): List<Post> {
 //        return postRepository.findAllByPlaceName(placeName).reversed()

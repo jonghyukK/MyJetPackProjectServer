@@ -4,6 +4,7 @@ import com.kjh.myserver073.controller.ValidateUser
 import com.kjh.myserver073.model.vo.PostVo
 import com.kjh.myserver073.model.vo.UserVo
 import com.kjh.myserver073.model.entity.User
+import com.kjh.myserver073.model.vo.FollowVo
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import javax.transaction.Transactional
@@ -37,7 +38,7 @@ interface NewUserService {
     ): UserVo
 
     @Transactional
-    fun updateFollowOrNot(myEmail: String, targetEmail: String): UserVo
+    fun updateFollowOrNot(myEmail: String, targetEmail: String): FollowVo
 
     @Transactional
     fun uploadPost(

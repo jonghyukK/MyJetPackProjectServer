@@ -22,4 +22,6 @@ interface PostRepository: CrudRepository<Post, Int> {
     fun findAllByOrderByCreatedAtDesc(pageable: Pageable): List<Post>
 
     override fun findAll(): List<Post>
+
+    fun findAllByPlaceSubCityNameOrderByCreatedAtDesc(subCityName: String): List<Post>
 }

@@ -1,5 +1,6 @@
 package com.kjh.myserver073.controller
 
+import com.kjh.myserver073.model.PlaceListResponse
 import com.kjh.myserver073.model.PlaceResponse
 import com.kjh.myserver073.model.vo.RankingResponse
 import com.kjh.myserver073.service.PlaceService
@@ -74,6 +75,36 @@ class PlaceController {
                     PlaceResponse(
                         result = false,
                         errorMsg = "장소 불러오기를 실패하였습니다."
+                    )
+                )
+        }
+    }
+
+    /***************************************************
+     *
+     *  [GET] Get Place List By "SubCityName"
+     *
+     ***************************************************/
+    @GetMapping("place/subCityName")
+    private fun getPlacesBySubCityName(
+        @RequestParam("subCityName") subCityName: String
+    ): ResponseEntity<PlaceListResponse> {
+        try {
+            return ResponseEntity
+                .ok()
+                .body(
+                    PlaceListResponse(
+                        result = true,
+                        data = placeService.findAllBySubCityName(subCityName)
+                    )
+                )
+        } catch(e: Exception) {
+            return ResponseEntity
+                .ok()
+                .body(
+                    PlaceListResponse(
+                        result = false,
+                        errorMsg = "SubCityName에 따른 장소 불러오기를 실패하였습니다."
                     )
                 )
         }
