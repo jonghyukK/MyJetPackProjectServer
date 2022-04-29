@@ -78,31 +78,6 @@ class NewUserServiceImpl constructor(
     }
 
     @Transactional
-    override fun updateBookmark(email: String, postId: Int): List<PostVo> {
-        val user = userRepository.findUserByEmail(email)!!
-
-        val existBookmark = bookmarkRepository.findByUserIdAndPostId(user.userId!!, postId)
-
-        if (existBookmark == null) {
-            bookmarkRepository.save(Bookmark(
-                bookmarkId = null,
-                userId     = user.userId,
-                postId     = postId)
-            )
-        } else {
-            bookmarkRepository.deleteByBookmarkId(existBookmark.bookmarkId!!)
-        }
-
-        val bookmarks = bookmarkRepository.findAllByUserId(user.userId).map { bookmark ->
-            postRepository.findById(bookmark.postId).get()
-        }
-
-        return Mappers.postListToPostVoList(bookmarks).map {
-            it.copy(isBookmarked = true)
-        }
-    }
-
-    @Transactional
     override fun createUser(user: User) = userRepository.save(user)
 
     @Transactional

@@ -24,9 +24,6 @@ interface NewUserService {
     fun getUserByEmail(email: String, myEmail: String): UserVo
 
     @Transactional
-    fun updateBookmark(email: String, postId: Int): List<PostVo>
-
-    @Transactional
     fun createUser(user: User): User
 
     @Transactional

@@ -30,7 +30,6 @@ class NewPostController {
      ***************************************************/
     @GetMapping("post/recent")
     private fun getPostsByCreated(
-        @RequestParam("myEmail") myEmail: String,
         @RequestParam("page") page: Int = 0,
         @RequestParam("size") size: Int = 3
     ): ResponseEntity<PostResponse> {
@@ -38,20 +37,6 @@ class NewPostController {
             val pageRequest = PageRequest.of(page, size)
 
             val posts = postService.findAllRecentPosts(pageRequest)
-
-//            val posts = postService.findAllByOrderByCreatedAt(pageRequest)
-//            val user = userService.getMyUser(myEmail)
-
-//            val convertPosts = posts.map { post ->
-//                post.copy(
-////                    isBookmarked = user.bookMarks.find { it.placeName == post.placeName } != null
-//                )
-//            }
-
-//            val posts = postService.findAll()
-//            val str = placeService.findAll().map {
-//                it.copy(posts = posts)
-//            }
 
             return ResponseEntity
                 .ok()

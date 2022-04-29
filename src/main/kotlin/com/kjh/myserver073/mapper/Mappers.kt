@@ -4,6 +4,7 @@ import com.kjh.myserver073.model.PlaceVo
 import com.kjh.myserver073.model.entity.Place
 import com.kjh.myserver073.model.entity.Post
 import com.kjh.myserver073.model.entity.User
+import com.kjh.myserver073.model.vo.BookmarkVo
 import com.kjh.myserver073.model.vo.PostVo
 import com.kjh.myserver073.model.vo.RankingVo
 import com.kjh.myserver073.model.vo.UserVo
@@ -61,6 +62,29 @@ object Mappers {
     fun postListToPostVoList(postEntities: List<Post>): List<PostVo> {
         return postEntities.map { postEntity ->
             postToPostVo(postEntity)
+        }
+    }
+
+    fun postToBookmarkVo(postEntity: Post) = BookmarkVo(
+        postId      = postEntity.postId!!,
+        content     = postEntity.content,
+        createdDate = postEntity.createdDate,
+        imageUrl    = postEntity.imageUrl,
+        profileImg  = postEntity.user.profileImg,
+        email       = postEntity.user.email,
+        nickName    = postEntity.user.nickName,
+        cityName    = postEntity.place.cityName,
+        subCityName = postEntity.place.subCityName,
+        placeName   = postEntity.place.placeName,
+        placeAddress    = postEntity.place.placeAddress,
+        placeRoadAddress= postEntity.place.placeRoadAddress,
+        x               = postEntity.place.x,
+        y               = postEntity.place.y,
+    )
+
+    fun postListToBookmarkVoList(postEntities: List<Post>): List<BookmarkVo> {
+        return postEntities.map { postEntity ->
+            postToBookmarkVo(postEntity)
         }
     }
 

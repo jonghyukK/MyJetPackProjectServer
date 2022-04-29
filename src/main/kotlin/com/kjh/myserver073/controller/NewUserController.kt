@@ -147,37 +147,6 @@ class NewUserController {
         }
     }
 
-    /*******************************************************************
-     *
-     *  [PUT] Update BookMark.
-     *
-     *******************************************************************/
-    @PutMapping("/user/bookmark")
-    private fun updateBookmark(
-        @RequestParam("postId") postId: Int,
-        @RequestParam("email") email: String
-    ): ResponseEntity<Any> {
-        try {
-            return ResponseEntity
-                .ok()
-                .body(
-                    BookMarkResponse(
-                        result = true,
-                        data = userService.updateBookmark(email, postId)
-                    )
-                )
-        } catch (e: Exception) {
-            return ResponseEntity
-                .ok()
-                .body(
-                    BookMarkResponse(
-                        result = false,
-                        errorMsg = "Error Update BookMark."
-                    )
-                )
-        }
-    }
-
     /***************************************************
      *
      *  [PUT] User Update.
