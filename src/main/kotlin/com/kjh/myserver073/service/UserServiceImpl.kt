@@ -4,9 +4,7 @@ import com.kjh.myserver073.BASE_IMAGE_URL
 import com.kjh.myserver073.IMAGE_SAVE_FOLDER
 import com.kjh.myserver073.controller.ValidateUser
 import com.kjh.myserver073.mapper.Mappers
-import com.kjh.myserver073.model.vo.PostVo
 import com.kjh.myserver073.model.vo.UserVo
-import com.kjh.myserver073.model.entity.Bookmark
 import com.kjh.myserver073.model.entity.Place
 import com.kjh.myserver073.model.entity.Post
 import com.kjh.myserver073.model.entity.User
@@ -25,12 +23,12 @@ import javax.transaction.Transactional
 
 
 @Service
-class NewUserServiceImpl constructor(
+class UserServiceImpl constructor(
         @Autowired private val userRepository: UserRepository,
         @Autowired private val postRepository: PostRepository,
         @Autowired private val bookmarkRepository: BookmarkRepository,
         @Autowired private val placeRepository: PlaceRepository
-): NewUserService {
+): UserService {
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
     override fun checkExistUser(email: String) =

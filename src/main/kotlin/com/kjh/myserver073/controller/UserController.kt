@@ -2,7 +2,9 @@ package com.kjh.myserver073.controller
 
 import com.kjh.myserver073.model.*
 import com.kjh.myserver073.model.entity.User
-import com.kjh.myserver073.service.NewUserService
+import com.kjh.myserver073.model.vo.LoginVo
+import com.kjh.myserver073.model.vo.SignUpVo
+import com.kjh.myserver073.service.UserService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -19,11 +21,11 @@ enum class ValidateUser(val errorMsg: String?) {
 
 @RestController
 @RequestMapping
-class NewUserController {
+class UserController {
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
     @Autowired
-    private lateinit var userService: NewUserService
+    private lateinit var userService: UserService
 
     /*******************************************************************
      *
@@ -35,7 +37,7 @@ class NewUserController {
             @RequestParam("email")    email   : String,
             @RequestParam("pw")       pw      : String,
             @RequestParam("nickName") nickName: String,
-    ): ResponseEntity<NewUserResponse> {
+    ): ResponseEntity<UserResponse> {
         try {
             val userValidation = userService.checkExistUser(email)
 
@@ -52,16 +54,19 @@ class NewUserController {
 
             return ResponseEntity
                 .ok()
-                .body(NewUserResponse(
-                    result   = userValidation == ValidateUser.VALID,
-                    errorMsg = userValidation.errorMsg
+                .body(UserResponse(
+                    result = true,
+                    data = SignUpVo(
+                        isSuccess = userValidation == ValidateUser.VALID,
+                        signUpErrorMsg = userValidation.errorMsg
+                    )
                 ))
 
         } catch (e: Exception) {
             return ResponseEntity
                 .ok()
                 .body(
-                    NewUserResponse(
+                    UserResponse(
                         result = false,
                         errorMsg = "Error Create User."
                     )
@@ -78,22 +83,25 @@ class NewUserController {
     private fun requestLogin(
             @RequestParam("email") email   : String,
             @RequestParam("pw")    pw      : String,
-    ): ResponseEntity<NewUserResponse> {
+    ): ResponseEntity<UserResponse> {
         try {
             val loginValidation = userService.validateLogin(email, pw)
 
             return ResponseEntity
                 .ok()
-                .body(NewUserResponse(
-                    result = loginValidation == ValidateUser.VALID,
-                    errorMsg = loginValidation.errorMsg
+                .body(UserResponse(
+                    result = true,
+                    data = LoginVo(
+                        isSuccess     = loginValidation == ValidateUser.VALID,
+                        loginErrorMsg = loginValidation.errorMsg
+                    )
                 ))
 
         } catch (e: Exception) {
             return ResponseEntity
                 .ok()
                 .body(
-                    NewUserResponse(
+                    UserResponse(
                         result = false,
                         errorMsg = "Error Request Login."
                     )
@@ -110,7 +118,7 @@ class NewUserController {
     fun getUser(
         @RequestParam("myEmail"    ) myEmail    : String,
         @RequestParam("targetEmail") targetEmail: String?
-    ): ResponseEntity<NewUserResponse>? {
+    ): ResponseEntity<UserResponse>? {
         try {
 
             // Other Profile.
@@ -118,7 +126,7 @@ class NewUserController {
                 return ResponseEntity
                     .ok()
                     .body(
-                        NewUserResponse(
+                        UserResponse(
                             result = true,
                             data = userService.getUserByEmail(targetEmail, myEmail)
                         )
@@ -129,7 +137,7 @@ class NewUserController {
             return ResponseEntity
                 .ok()
                 .body(
-                    NewUserResponse(
+                    UserResponse(
                         result = true,
                         data = userService.getMyUser(myEmail),
                     )
@@ -139,7 +147,7 @@ class NewUserController {
             return ResponseEntity
                 .ok()
                 .body(
-                    NewUserResponse(
+                    UserResponse(
                         result = false,
                         errorMsg = "Error Get User."
                     )
@@ -162,7 +170,7 @@ class NewUserController {
         ResponseEntity
             .ok()
             .body(
-                NewUserResponse(
+                UserResponse(
                     result = true,
                     data = userService.updateUser(file, email, nickName, introduce)
                 )
@@ -171,7 +179,7 @@ class NewUserController {
         ResponseEntity
             .ok()
             .body(
-                NewUserResponse(
+                UserResponse(
                     result = false,
                     errorMsg = "프로필 변경이 실패하였습니다."
                 )
@@ -194,7 +202,7 @@ class NewUserController {
         ResponseEntity
             .ok()
             .body(
-                NewUserResponse(
+                UserResponse(
                     result = true,
                     data = followResult
                 )
@@ -204,7 +212,7 @@ class NewUserController {
         ResponseEntity
             .ok()
             .body(
-                NewUserResponse(
+                UserResponse(
                     result = false,
                     errorMsg = "팔로우 요청에 실패하였습니다."
                 )
@@ -230,7 +238,7 @@ class NewUserController {
         ResponseEntity
             .ok()
             .body(
-                NewUserResponse(
+                UserResponse(
                     result = true,
                     data = userService.uploadPost(
                         email, content, file, placeName, placeAddress, placeRoadAddress, x, y
@@ -243,7 +251,7 @@ class NewUserController {
         ResponseEntity
             .ok()
             .body(
-                NewUserResponse(
+                UserResponse(
                     result = false,
                     errorMsg = "업로드가 실패하였습니다."
                 )

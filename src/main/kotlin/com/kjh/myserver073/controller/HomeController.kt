@@ -2,7 +2,7 @@ package com.kjh.myserver073.controller
 
 import com.kjh.myserver073.model.BannersResponse
 import com.kjh.myserver073.model.vo.BannerVo
-import com.kjh.myserver073.service.NewPostService
+import com.kjh.myserver073.service.PostService
 import com.kjh.myserver073.service.PlaceService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -21,7 +21,7 @@ class HomeController {
     private lateinit var placeService: PlaceService
 
     @Autowired
-    private lateinit var postService: NewPostService
+    private lateinit var postService: PostService
 
     /***************************************************
      *

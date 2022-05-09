@@ -5,7 +5,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
-interface NewPostService {
+interface PostService {
 
     fun findAll(): List<Post>
 

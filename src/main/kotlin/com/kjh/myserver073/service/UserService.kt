@@ -1,7 +1,6 @@
 package com.kjh.myserver073.service
 
 import com.kjh.myserver073.controller.ValidateUser
-import com.kjh.myserver073.model.vo.PostVo
 import com.kjh.myserver073.model.vo.UserVo
 import com.kjh.myserver073.model.entity.User
 import com.kjh.myserver073.model.vo.FollowVo
@@ -11,7 +10,7 @@ import javax.transaction.Transactional
 
 
 @Service
-interface NewUserService {
+interface UserService {
 
     fun checkExistUser(email: String): ValidateUser
 

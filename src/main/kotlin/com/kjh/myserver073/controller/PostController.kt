@@ -2,8 +2,8 @@ package com.kjh.myserver073.controller
 
 import com.kjh.myserver073.mapper.Mappers
 import com.kjh.myserver073.model.PostResponse
-import com.kjh.myserver073.service.NewPostService
-import com.kjh.myserver073.service.NewUserService
+import com.kjh.myserver073.service.PostService
+import com.kjh.myserver073.service.UserService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
@@ -14,14 +14,14 @@ import java.util.*
 
 @RestController
 @RequestMapping
-class NewPostController {
+class PostController {
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
     @Autowired
-    private lateinit var postService: NewPostService
+    private lateinit var postService: PostService
 
     @Autowired
-    private lateinit var userService: NewUserService
+    private lateinit var userService: UserService
 
     /***************************************************
      *

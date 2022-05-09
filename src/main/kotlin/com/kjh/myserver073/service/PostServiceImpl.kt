@@ -7,9 +7,9 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
-class NewPostServiceImpl constructor(
+class PostServiceImpl constructor(
         @Autowired private val postRepository: PostRepository
-): NewPostService {
+): PostService {
 
     override fun findAll(): List<Post> {
         return postRepository.findAll()
