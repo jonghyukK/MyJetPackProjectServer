@@ -1,6 +1,7 @@
 package com.kjh.myserver073.service
 
 import com.kjh.myserver073.model.entity.Post
+import com.kjh.myserver073.model.vo.UserAndPostsAndBookmarks
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
@@ -13,14 +14,5 @@ interface PostService {
 
     fun findByPlaceSubCityName(subCityName: String): List<Post>
 
-    fun deletePostByPostId(postId: Int)
-
-
-//    fun findAllByPlaceName(placeName: String): List<Post>
-//
-//    fun findByPostId(postId: Int): Post
-//
-//    fun findAllByUserId(userId: Int): List<Post>
-//
-//    fun findAllByOrderByCreatedAt(pageable: Pageable): List<Post>
+    fun deletePostByPostId(postId: Int, email: String): UserAndPostsAndBookmarks
 }

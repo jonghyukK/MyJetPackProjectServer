@@ -13,12 +13,6 @@ import org.springframework.data.repository.CrudRepository
  */
 interface PostRepository: CrudRepository<Post, Int> {
 
-    fun findAllByUserUserIdOrderByCreatedAtDesc(userid: Int): List<Post>
-
-    fun findAllByUserUserId(userId: Int): List<Post>
-
-    fun findAllByPlacePlaceId(placeId: String): List<Post>
-
     fun findAllByOrderByCreatedAtDesc(pageable: Pageable): List<Post>
 
     override fun findAll(): List<Post>

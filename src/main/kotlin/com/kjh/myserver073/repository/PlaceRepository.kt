@@ -22,4 +22,6 @@ interface PlaceRepository: CrudRepository<Place, Int> {
 
     @EntityGraph(attributePaths = ["posts"])
     fun findBySubCityName(subCityName: String): Place
+
+    fun deleteByPlaceId(placeId: String)
 }

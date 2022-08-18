@@ -27,7 +27,7 @@ object Mappers {
                 isFollowing     = this.isFollowing,
                 posts           = this.posts.map { post -> post.copy(
                     isBookmarked = bookmarks.find { it.placeName == post.placeName } != null
-                ) },
+                ) }.reversed(),
                 bookMarks       = this.bookmarks
             )
         }

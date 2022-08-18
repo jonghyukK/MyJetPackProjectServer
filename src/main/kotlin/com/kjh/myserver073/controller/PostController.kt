@@ -1,6 +1,7 @@
 package com.kjh.myserver073.controller
 
 import com.kjh.myserver073.model.common.ApiResponse
+import com.kjh.myserver073.model.common.toResponseEntity
 import com.kjh.myserver073.model.model.toModel
 import com.kjh.myserver073.service.PostService
 import com.kjh.myserver073.service.UserService
@@ -65,27 +66,17 @@ class PostController {
     private fun deletePostByPostId(
         @RequestParam("postId") postId: Int,
         @RequestParam("email" ) email : String
-    ): ResponseEntity<ApiResponse> {
+    ): ResponseEntity<ApiResponse> =
         try {
-            postService.deletePostByPostId(postId)
+            ApiResponse(
+                result = true,
+                data = postService.deletePostByPostId(postId, email)
+            ).toResponseEntity()
 
-            return ResponseEntity
-                .ok()
-                .body(
-                    ApiResponse(
-                        result = true,
-                        data = userService.getMyUser(email)
-                    )
-                )
-        } catch(e: Exception) {
-            return ResponseEntity
-                .ok()
-                .body(
-                    ApiResponse(
-                        result = false,
-                        errorMsg = "Failed Delete Post."
-                    )
-                )
+        } catch (e: Exception) {
+            ApiResponse(
+                result = false,
+                errorMsg = "Failed Delete Post."
+            ).toResponseEntity()
         }
-    }
 }
