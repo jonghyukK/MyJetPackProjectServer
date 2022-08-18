@@ -60,9 +60,13 @@ class UserServiceImpl constructor(
     @Transactional
     override fun getUserByEmail(email: String, myEmail: String): UserAndPostsAndBookmarks {
         val targetUser = userRepository.findUserByEmail(email)!!
+        val myUser     = userRepository.findUserByEmail(myEmail)!!
 
         return Mappers.makeUserAndPostsAndBookmarks(
-            targetUser.copy(isFollowing = targetUser.followList.contains(myEmail)),
+            targetUser.copy(
+                isFollowing = targetUser.followList.contains(myEmail),
+                bookmarks   = myUser.bookmarks
+            )
         )
     }
 

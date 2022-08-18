@@ -1,11 +1,9 @@
 package com.kjh.myserver073.mapper
 
-import com.kjh.myserver073.model.entity.Bookmark
 import com.kjh.myserver073.model.entity.Place
 import com.kjh.myserver073.model.entity.User
 import com.kjh.myserver073.model.model.PlaceWithRankingModel
 import com.kjh.myserver073.model.model.toModel
-import com.kjh.myserver073.model.vo.BookmarkResponseModel
 import com.kjh.myserver073.model.vo.UserAndPostsAndBookmarks
 
 
@@ -27,7 +25,9 @@ object Mappers {
                 followList      = this.followList,
                 followingList   = this.followingList,
                 isFollowing     = this.isFollowing,
-                posts           = this.posts.reversed(),
+                posts           = this.posts.map { post -> post.copy(
+                    isBookmarked = bookmarks.find { it.placeName == post.placeName } != null
+                ) },
                 bookMarks       = this.bookmarks
             )
         }

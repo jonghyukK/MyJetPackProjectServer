@@ -41,6 +41,9 @@ class PlaceServiceImpl constructor(
     override fun findAllBySubCityName(subCityName: String): List<PlaceModel> =
         placeRepository.findAllBySubCityName(subCityName).map { it.toModel() }
 
-    override fun findBySubCityName(subCityName: String): PlaceModel =
-        placeRepository.findBySubCityName(subCityName).toModel()
+    override fun findBySubCityName(subCityName: String): PlaceModel {
+        val place = placeRepository.findBySubCityName(subCityName).toModel()
+
+        return place
+    }
 }

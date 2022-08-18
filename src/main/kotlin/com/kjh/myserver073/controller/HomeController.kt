@@ -28,28 +28,28 @@ class HomeController {
     @GetMapping("banners")
     private fun getBanners(): ResponseEntity<ApiResponse> =
         try {
-            val banner1 = placeService.findBySubCityName("삼척시").run {
+            val banner1 = placeService.findAllBySubCityName("삼척시").run {
                 BannerModel(
                     bannerId = 1,
-                    bannerImg = placeImg,
+                    bannerImg = this[0].placeImg,
                     bannerTitle = "척하면 떠오르는 삼척 여행",
                     bannerTopic = "삼척시"
                 )
             }
 
-            val banner2 = placeService.findBySubCityName("단양군").run {
+            val banner2 = placeService.findAllBySubCityName("단양군").run {
                 BannerModel(
                     bannerId = 2,
-                    bannerImg = placeImg,
+                    bannerImg = this[0].placeImg,
                     bannerTitle = "패러글라이딩의 성지, 단양 여행",
                     bannerTopic = "단양군"
                 )
             }
 
-            val banner3 = placeService.findBySubCityName("문경시").run {
+            val banner3 = placeService.findAllBySubCityName("문경시").run {
                 BannerModel(
                     bannerId = 3,
-                    bannerImg = placeImg,
+                    bannerImg = this[0].placeImg,
                     bannerTitle = "문경세재의 고향, 문경 여행",
                     bannerTopic = "문경시"
                 )

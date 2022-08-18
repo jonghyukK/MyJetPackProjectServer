@@ -16,7 +16,8 @@ data class PostModel(
     val x               : String,
     val y               : String,
     val createdDate     : String,
-    val imageUrl        : List<String> = listOf()
+    val imageUrl        : List<String> = listOf(),
+    val isBookmarked    : Boolean = false
 )
 
 fun Post.toModel() =
