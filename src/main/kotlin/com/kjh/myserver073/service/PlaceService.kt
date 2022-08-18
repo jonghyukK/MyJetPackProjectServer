@@ -1,9 +1,9 @@
 package com.kjh.myserver073.service
 
-import com.kjh.myserver073.model.PlaceVo
 import com.kjh.myserver073.model.entity.Place
-import com.kjh.myserver073.model.entity.Post
-import com.kjh.myserver073.model.vo.RankingVo
+import com.kjh.myserver073.model.model.PlaceModel
+import com.kjh.myserver073.model.model.PlaceWithRankingModel
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 @Service
@@ -11,9 +11,13 @@ interface PlaceService {
 
   fun findAll(): List<Place>
 
-  fun findByPlaceName(placeName: String): PlaceVo?
+  fun findByPlaceName(placeName: String): PlaceModel?
 
-  fun findAllByUploadCountDesc(): List<RankingVo>
+  fun findByPlaceNameWithAroundPaging(placeName: String, pageable: Pageable): List<PlaceModel>
 
-  fun findAllBySubCityName(subCityName: String): List<PlaceVo>
+  fun findAllByUploadCountDesc(): List<PlaceWithRankingModel>
+
+  fun findAllBySubCityName(subCityName: String): List<PlaceModel>
+
+  fun findBySubCityName(subCityName: String): PlaceModel
 }

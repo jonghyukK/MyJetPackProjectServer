@@ -1,6 +1,7 @@
 package com.kjh.myserver073.controller
 
-import com.kjh.myserver073.model.BookMarkResponse
+import com.kjh.myserver073.model.common.ApiResponse
+import com.kjh.myserver073.model.common.toResponseEntity
 import com.kjh.myserver073.service.BookmarkService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -17,64 +18,23 @@ class BookmarkController {
 
     /***************************************************
      *
-     *  [GET] GET Bookmarks.
-     *
-     ***************************************************/
-    @GetMapping("bookmarks")
-    private fun getBookmarks(
-        @RequestParam("myEmail") myEmail: String
-    ): ResponseEntity<BookMarkResponse> {
-        try {
-            return ResponseEntity
-                .ok()
-                .body(
-                    BookMarkResponse(
-                        result = true,
-                        data = bookmarkService.getBookmarks(myEmail)
-                    )
-                )
-        } catch (e: Exception) {
-            return ResponseEntity
-                .ok()
-                .body(
-                    BookMarkResponse(
-                        result = false,
-                        errorMsg = "북마크 가져오기에 실패하였습니다."
-                    )
-                )
-        }
-    }
-
-
-    /***************************************************
-     *
      *  [PUT] Update Bookmarks.
      *
      ***************************************************/
     @PutMapping("bookmarks")
     private fun updateBookmarks(
-        @RequestParam("myEmail"  ) myEmail: String,
-        @RequestParam("postId"   ) postId: Int,
+        @RequestParam("myEmail"  ) myEmail  : String,
         @RequestParam("placeName") placeName: String
-    ): ResponseEntity<BookMarkResponse> {
+    ): ResponseEntity<ApiResponse> =
         try {
-            return ResponseEntity
-                .ok()
-                .body(
-                    BookMarkResponse(
-                        result = true,
-                        data = bookmarkService.updateBookmarks(myEmail, postId, placeName)
-                    )
-                )
+            ApiResponse(
+                result = true,
+                data = bookmarkService.updateBookmarks(myEmail, placeName)
+            ).toResponseEntity()
         } catch (e: Exception) {
-            return ResponseEntity
-                .ok()
-                .body(
-                    BookMarkResponse(
-                        result = false,
-                        errorMsg = "북마크 업데이트에 실패하였습니다."
-                    )
-                )
+            ApiResponse(
+                result = false,
+                errorMsg = "북마크 업데이트에 실패하였습니다."
+            ).toResponseEntity()
         }
-    }
 }

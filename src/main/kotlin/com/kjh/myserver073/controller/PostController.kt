@@ -1,7 +1,7 @@
 package com.kjh.myserver073.controller
 
-import com.kjh.myserver073.mapper.Mappers
-import com.kjh.myserver073.model.PostResponse
+import com.kjh.myserver073.model.common.ApiResponse
+import com.kjh.myserver073.model.model.toModel
 import com.kjh.myserver073.service.PostService
 import com.kjh.myserver073.service.UserService
 import org.slf4j.LoggerFactory
@@ -32,27 +32,58 @@ class PostController {
     private fun getPostsByCreated(
         @RequestParam("page") page: Int = 0,
         @RequestParam("size") size: Int = 3
-    ): ResponseEntity<PostResponse> {
+    ): ResponseEntity<ApiResponse> {
         try {
             val pageRequest = PageRequest.of(page, size)
-
-            val posts = postService.findAllRecentPosts(pageRequest)
 
             return ResponseEntity
                 .ok()
                 .body(
-                    PostResponse(
+                    ApiResponse(
                         result = true,
-                        data = Mappers.postListToPostVoList(posts)
+                        data   = postService.findAllRecentPosts(pageRequest).map { it.toModel() }
                     )
                 )
         } catch (e: Exception) {
             return ResponseEntity
                 .ok()
                 .body(
-                    PostResponse(
+                    ApiResponse(
                         result = false,
                         errorMsg = "최근 여행지 불러오기를 실패하였습니다."
+                    )
+                )
+        }
+    }
+
+    /***************************************************
+     *
+     *  [DELETE] Delete Posts
+     *
+     ***************************************************/
+    @DeleteMapping("post/delete")
+    private fun deletePostByPostId(
+        @RequestParam("postId") postId: Int,
+        @RequestParam("email" ) email : String
+    ): ResponseEntity<ApiResponse> {
+        try {
+            postService.deletePostByPostId(postId)
+
+            return ResponseEntity
+                .ok()
+                .body(
+                    ApiResponse(
+                        result = true,
+                        data = userService.getMyUser(email)
+                    )
+                )
+        } catch(e: Exception) {
+            return ResponseEntity
+                .ok()
+                .body(
+                    ApiResponse(
+                        result = false,
+                        errorMsg = "Failed Delete Post."
                     )
                 )
         }

@@ -5,10 +5,11 @@ import com.kjh.myserver073.repository.PostRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
+import javax.transaction.Transactional
 
 @Service
 class PostServiceImpl constructor(
-        @Autowired private val postRepository: PostRepository
+    @Autowired private val postRepository: PostRepository
 ): PostService {
 
     override fun findAll(): List<Post> {
@@ -16,29 +17,15 @@ class PostServiceImpl constructor(
     }
 
     override fun findAllRecentPosts(pageable: Pageable): List<Post> {
-        val posts = postRepository.findAllByOrderByCreatedAtDesc(pageable)
-
-        return posts
+        return postRepository.findAllByOrderByCreatedAtDesc(pageable)
     }
 
     override fun findByPlaceSubCityName(subCityName: String): List<Post> {
         return postRepository.findAllByPlaceSubCityNameOrderByCreatedAtDesc(subCityName)
     }
 
-//
-//    override fun findAllByPlaceName(placeName: String): List<Post> {
-//        return postRepository.findAllByPlaceName(placeName).reversed()
-//    }
-//
-//    override fun findByPostId(postId: Int): Post {
-//        return postRepository.findById(postId).get()
-//    }
-//
-//    override fun findAllByUserId(userId: Int): List<Post> {
-//        return postRepository.findAllByUserIdOrderByUserIdDesc(userId)
-//    }
-//
-//    override fun findAllByOrderByCreatedAt(pageable: Pageable): List<Post> {
-//        return postRepository.findAllByOrderByCreatedAt(pageable)
-//    }
+    @Transactional
+    override fun deletePostByPostId(postId: Int) {
+        postRepository.deleteByPostId(postId)
+    }
 }

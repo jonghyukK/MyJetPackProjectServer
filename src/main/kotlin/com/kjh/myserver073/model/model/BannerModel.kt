@@ -1,6 +1,6 @@
-package com.kjh.myserver073.model.vo
+package com.kjh.myserver073.model.model
 
-data class BannerVo(
+data class BannerModel(
     val bannerId   : Int,
     val bannerImg  : String,
     val bannerTitle: String,

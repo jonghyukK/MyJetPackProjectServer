@@ -24,4 +24,6 @@ interface PostRepository: CrudRepository<Post, Int> {
     override fun findAll(): List<Post>
 
     fun findAllByPlaceSubCityNameOrderByCreatedAtDesc(subCityName: String): List<Post>
+
+    fun deleteByPostId(postId: Int)
 }

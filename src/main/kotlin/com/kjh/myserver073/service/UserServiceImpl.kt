@@ -4,11 +4,11 @@ import com.kjh.myserver073.BASE_IMAGE_URL
 import com.kjh.myserver073.IMAGE_SAVE_FOLDER
 import com.kjh.myserver073.controller.ValidateUser
 import com.kjh.myserver073.mapper.Mappers
-import com.kjh.myserver073.model.vo.UserVo
 import com.kjh.myserver073.model.entity.Place
 import com.kjh.myserver073.model.entity.Post
 import com.kjh.myserver073.model.entity.User
-import com.kjh.myserver073.model.vo.FollowVo
+import com.kjh.myserver073.model.model.UserFollowModel
+import com.kjh.myserver073.model.vo.UserAndPostsAndBookmarks
 import com.kjh.myserver073.repository.BookmarkRepository
 import com.kjh.myserver073.repository.PlaceRepository
 import com.kjh.myserver073.repository.PostRepository
@@ -48,35 +48,23 @@ class UserServiceImpl constructor(
     }
 
     @Transactional
-    override fun getMyUser(email: String): UserVo {
-        val user  = userRepository.findUserByEmail(email)!!
-        val posts = postRepository.findAllByUserUserIdOrderByCreatedAtDesc(user.userId!!)
-        val bookmarks = bookmarkRepository.findAllByUserId(user.userId).map { bookmark ->
-            postRepository.findById(bookmark.postId).get()
-        }
+    override fun createUser(user: User) = userRepository.save(user)
 
-        return Mappers.makeUserVoWithPosts(user, posts, bookmarks)
+    @Transactional
+    override fun getMyUser(email: String): UserAndPostsAndBookmarks {
+        val user = userRepository.findUserByEmail(email)!!
+
+        return Mappers.makeUserAndPostsAndBookmarks(user)
     }
 
     @Transactional
-    override fun getUserByEmail(email: String, myEmail: String): UserVo {
+    override fun getUserByEmail(email: String, myEmail: String): UserAndPostsAndBookmarks {
         val targetUser = userRepository.findUserByEmail(email)!!
-        val myUser     = userRepository.findUserByEmail(myEmail)!!
-        val targetUserPosts = postRepository.findAllByUserUserIdOrderByCreatedAtDesc(targetUser.userId!!)
 
-        val bookmarks = bookmarkRepository.findAllByUserId(myUser.userId!!).map { bookmark ->
-            postRepository.findById(bookmark.postId).get()
-        }
-
-        return Mappers.makeUserVoWithPosts(
-            targetUser.copy(isFollowing = myUser.followingList.contains(targetUser.email)),
-            targetUserPosts,
-            bookmarks
+        return Mappers.makeUserAndPostsAndBookmarks(
+            targetUser.copy(isFollowing = targetUser.followList.contains(myEmail)),
         )
     }
-
-    @Transactional
-    override fun createUser(user: User) = userRepository.save(user)
 
     @Transactional
     override fun updateUser(
@@ -84,7 +72,7 @@ class UserServiceImpl constructor(
         email       : String,
         nickName    : String,
         introduce   : String?
-    ): UserVo {
+    ): UserAndPostsAndBookmarks {
         val user = userRepository.findUserByEmail(email)!!
 
         val tempProfileImg = file?.let {
@@ -102,7 +90,7 @@ class UserServiceImpl constructor(
             file.transferTo(File(filePath))
 
             "$BASE_IMAGE_URL${originFileName}"
-        }
+        } ?: user.profileImg
 
         val convertUser = createUser(
             user.copy(
@@ -112,16 +100,15 @@ class UserServiceImpl constructor(
             )
         )
 
-        val posts = postRepository.findAllByUserUserIdOrderByCreatedAtDesc(user.userId!!)
-        val bookmarks = bookmarkRepository.findAllByUserId(user.userId).map {
-            postRepository.findById(it.postId).get()
-        }
-
-        return Mappers.makeUserVoWithPosts(convertUser, posts, bookmarks)
+        return Mappers.makeUserAndPostsAndBookmarks(convertUser)
     }
 
     @Transactional
-    override fun updateFollowOrNot(myEmail: String, targetEmail: String): FollowVo {
+    override fun updateFollowOrNot(
+        myEmail     : String,
+        targetEmail : String
+    ): UserFollowModel {
+
         val myUserData = userRepository.findUserByEmail(myEmail)!!
         val isFollowed = myUserData.followingList.contains(targetEmail)
 
@@ -150,38 +137,29 @@ class UserServiceImpl constructor(
             followCount = newFollowList.size
         ))
 
-        val myProfile = Mappers.makeUserVoWithPosts(
-            updatedMyUser,
-            postRepository.findAllByUserUserIdOrderByCreatedAtDesc(myUserData.userId!!),
-            bookmarkRepository.findAllByUserId(myUserData.userId).map {
-                postRepository.findById(it.postId).get()
-            }
+        val myProfile = Mappers.makeUserAndPostsAndBookmarks(updatedMyUser)
+
+        val targetProfile = Mappers.makeUserAndPostsAndBookmarks(
+            updatedTargetUser.copy(isFollowing = !isFollowed)
         )
 
-        val targetProfile = Mappers.makeUserVoWithPosts(
-            updatedTargetUser.copy(isFollowing = !isFollowed),
-            postRepository.findAllByUserUserIdOrderByCreatedAtDesc(targetUser.userId!!),
-            bookmarkRepository.findAllByUserId(myUserData.userId).map {
-                postRepository.findById(it.postId).get()
-            }
-        )
-
-        return FollowVo(
-            myProfile = myProfile,
+        return UserFollowModel(
+            myProfile     = myProfile,
             targetProfile = targetProfile
         )
     }
 
+    @Transactional
     override fun uploadPost(
-        email: String,
-        content: String,
-        file: List<MultipartFile>,
-        placeName: String,
-        placeAddress: String,
+        email           : String,
+        content         : String,
+        file            : List<MultipartFile>,
+        placeName       : String,
+        placeAddress    : String,
         placeRoadAddress: String,
-        x: String,
-        y: String
-    ): UserVo {
+        x               : String,
+        y               : String
+    ): UserAndPostsAndBookmarks {
         val user = userRepository.findUserByEmail(email)!!
 
         val imgUrls = mutableListOf<String>()
@@ -208,22 +186,22 @@ class UserServiceImpl constructor(
 
         if (existPlace == null) {
             updatedPlace = placeRepository.save(Place(
-                placeId     = placeName,
-                cityName    = placeAddress.split(" ")[0],
-                subCityName = placeAddress.split(" ")[1],
-                placeName   = placeName,
-                placeAddress     = placeAddress,
-                placeRoadAddress = placeRoadAddress,
-                x = x,
-                y = y,
-                uploadCount = 1,
-                placeImg = imgUrls[0],
+                placeId             = placeName,
+                cityName            = placeAddress.split(" ")[0],
+                subCityName         = placeAddress.split(" ")[1],
+                placeName           = placeName,
+                placeAddress        = placeAddress,
+                placeRoadAddress    = placeRoadAddress,
+                x                   = x,
+                y                   = y,
+                uploadCount         = 1,
+                placeImg            = imgUrls[0],
             ))
         } else {
             updatedPlace = placeRepository.save(
                 existPlace.copy(
                     uploadCount = existPlace.uploadCount + 1,
-                    placeImg = imgUrls[0]
+                    placeImg    = imgUrls[0]
                 )
             )
         }
@@ -237,15 +215,14 @@ class UserServiceImpl constructor(
             place       = updatedPlace
         )
 
-        postRepository.save(newPostItem)
+        val post = postRepository.save(newPostItem)
+        val newUser = createUser(
+            user.copy(
+                posts     = user.posts + post,
+                postCount = user.posts.size + 1
+            )
+        )
 
-        val posts = postRepository.findAllByUserUserIdOrderByCreatedAtDesc(user.userId!!)
-        val newUser = createUser(user.copy(postCount = posts.size))
-        val bookmarks = bookmarkRepository.findAllByUserId(user.userId).map {
-            postRepository.findById(it.postId).get()
-        }
-
-
-        return Mappers.makeUserVoWithPosts(newUser, posts, bookmarks)
+        return Mappers.makeUserAndPostsAndBookmarks(newUser)
     }
 }

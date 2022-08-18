@@ -13,9 +13,10 @@ data class Bookmark(
     @Column(name = "user_id")
     val userId: Int,
 
-    @Column(name = "post_id")
-    val postId: Int,
-
     @Column
-    val placeName: String
+    val placeName: String,
+
+    @ManyToOne
+    @JoinColumn(name = "place_id")
+    val place: Place,
 )

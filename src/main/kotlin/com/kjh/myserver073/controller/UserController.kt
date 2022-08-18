@@ -1,6 +1,8 @@
 package com.kjh.myserver073.controller
 
 import com.kjh.myserver073.model.*
+import com.kjh.myserver073.model.common.ApiResponse
+import com.kjh.myserver073.model.common.toResponseEntity
 import com.kjh.myserver073.model.entity.User
 import com.kjh.myserver073.model.vo.LoginVo
 import com.kjh.myserver073.model.vo.SignUpVo
@@ -37,7 +39,7 @@ class UserController {
             @RequestParam("email")    email   : String,
             @RequestParam("pw")       pw      : String,
             @RequestParam("nickName") nickName: String,
-    ): ResponseEntity<UserResponse> {
+    ): ResponseEntity<ApiResponse> =
         try {
             val userValidation = userService.checkExistUser(email)
 
@@ -52,27 +54,20 @@ class UserController {
                 )
             }
 
-            return ResponseEntity
-                .ok()
-                .body(UserResponse(
-                    result = true,
-                    data = SignUpVo(
-                        isSuccess = userValidation == ValidateUser.VALID,
-                        signUpErrorMsg = userValidation.errorMsg
-                    )
-                ))
-
-        } catch (e: Exception) {
-            return ResponseEntity
-                .ok()
-                .body(
-                    UserResponse(
-                        result = false,
-                        errorMsg = "Error Create User."
-                    )
+            ApiResponse(
+                result = true,
+                data   = SignUpVo(
+                    isSuccess      = userValidation == ValidateUser.VALID,
+                    signUpErrorMsg = userValidation.errorMsg
                 )
+            ).toResponseEntity()
+        } catch (e: Exception) {
+            ApiResponse(
+                result = false,
+                errorMsg = "Error Create User."
+            ).toResponseEntity()
         }
-    }
+
 
     /*******************************************************************
      *
@@ -83,13 +78,13 @@ class UserController {
     private fun requestLogin(
             @RequestParam("email") email   : String,
             @RequestParam("pw")    pw      : String,
-    ): ResponseEntity<UserResponse> {
+    ): ResponseEntity<ApiResponse> {
         try {
             val loginValidation = userService.validateLogin(email, pw)
 
             return ResponseEntity
                 .ok()
-                .body(UserResponse(
+                .body(ApiResponse(
                     result = true,
                     data = LoginVo(
                         isSuccess     = loginValidation == ValidateUser.VALID,
@@ -101,7 +96,7 @@ class UserController {
             return ResponseEntity
                 .ok()
                 .body(
-                    UserResponse(
+                    ApiResponse(
                         result = false,
                         errorMsg = "Error Request Login."
                     )
@@ -118,7 +113,7 @@ class UserController {
     fun getUser(
         @RequestParam("myEmail"    ) myEmail    : String,
         @RequestParam("targetEmail") targetEmail: String?
-    ): ResponseEntity<UserResponse>? {
+    ): ResponseEntity<ApiResponse>? {
         try {
 
             // Other Profile.
@@ -126,7 +121,7 @@ class UserController {
                 return ResponseEntity
                     .ok()
                     .body(
-                        UserResponse(
+                        ApiResponse(
                             result = true,
                             data = userService.getUserByEmail(targetEmail, myEmail)
                         )
@@ -137,7 +132,7 @@ class UserController {
             return ResponseEntity
                 .ok()
                 .body(
-                    UserResponse(
+                    ApiResponse(
                         result = true,
                         data = userService.getMyUser(myEmail),
                     )
@@ -147,7 +142,7 @@ class UserController {
             return ResponseEntity
                 .ok()
                 .body(
-                    UserResponse(
+                    ApiResponse(
                         result = false,
                         errorMsg = "Error Get User."
                     )
@@ -170,7 +165,7 @@ class UserController {
         ResponseEntity
             .ok()
             .body(
-                UserResponse(
+                ApiResponse(
                     result = true,
                     data = userService.updateUser(file, email, nickName, introduce)
                 )
@@ -179,7 +174,7 @@ class UserController {
         ResponseEntity
             .ok()
             .body(
-                UserResponse(
+                ApiResponse(
                     result = false,
                     errorMsg = "프로필 변경이 실패하였습니다."
                 )
@@ -202,7 +197,7 @@ class UserController {
         ResponseEntity
             .ok()
             .body(
-                UserResponse(
+                ApiResponse(
                     result = true,
                     data = followResult
                 )
@@ -212,7 +207,7 @@ class UserController {
         ResponseEntity
             .ok()
             .body(
-                UserResponse(
+                ApiResponse(
                     result = false,
                     errorMsg = "팔로우 요청에 실패하였습니다."
                 )
@@ -238,7 +233,7 @@ class UserController {
         ResponseEntity
             .ok()
             .body(
-                UserResponse(
+                ApiResponse(
                     result = true,
                     data = userService.uploadPost(
                         email, content, file, placeName, placeAddress, placeRoadAddress, x, y
@@ -251,7 +246,7 @@ class UserController {
         ResponseEntity
             .ok()
             .body(
-                UserResponse(
+                ApiResponse(
                     result = false,
                     errorMsg = "업로드가 실패하였습니다."
                 )

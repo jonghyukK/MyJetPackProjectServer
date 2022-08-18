@@ -2,8 +2,10 @@ package com.kjh.myserver073.service
 
 import com.kjh.myserver073.mapper.Mappers
 import com.kjh.myserver073.model.entity.Bookmark
-import com.kjh.myserver073.model.vo.BookmarkVo
+import com.kjh.myserver073.model.model.BookmarkModel
+import com.kjh.myserver073.model.model.toModel
 import com.kjh.myserver073.repository.BookmarkRepository
+import com.kjh.myserver073.repository.PlaceRepository
 import com.kjh.myserver073.repository.PostRepository
 import com.kjh.myserver073.repository.UserRepository
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,45 +16,41 @@ import javax.transaction.Transactional
 class BookmarkServiceImpl constructor(
     @Autowired private val userRepository: UserRepository,
     @Autowired private val postRepository: PostRepository,
-    @Autowired private val bookmarkRepository: BookmarkRepository
+    @Autowired private val bookmarkRepository: BookmarkRepository,
+    @Autowired private val placeRepository: PlaceRepository
 ): BookmarkService {
-
-    override fun getBookmarks(email: String): List<BookmarkVo> {
-        val user = userRepository.findUserByEmail(email)!!
-
-        val bookmarks = bookmarkRepository.findAllByUserId(user.userId!!).map { bookmark ->
-            postRepository.findById(bookmark.postId).get()
-        }
-
-        return Mappers.postListToBookmarkVoList(bookmarks)
-    }
 
     @Transactional
     override fun updateBookmarks(
         email    : String,
-        postId   : Int,
         placeName: String
-    ): List<BookmarkVo> {
+    ): List<BookmarkModel> {
         val user = userRepository.findUserByEmail(email)!!
 
-        val existBookmark = bookmarkRepository.findByUserIdAndPlaceName(user.userId!!, placeName)
+        var myBookmarks = bookmarkRepository.findAllByUserId(user.userId!!)
+        val existBookmark = myBookmarks.find { it.placeName == placeName }
 
-        if (existBookmark == null) {
-            bookmarkRepository.save(Bookmark(
+        myBookmarks = if (existBookmark == null) {
+            val place = placeRepository.findByPlaceName(placeName)
+
+            val insertedBookmark = bookmarkRepository.save(Bookmark(
                 bookmarkId = null,
                 userId     = user.userId,
-                postId     = postId,
-                placeName  = placeName
+                placeName  = placeName,
+                place      = place!!
             ))
+
+            myBookmarks + insertedBookmark
         } else {
             bookmarkRepository.deleteByBookmarkId(existBookmark.bookmarkId!!)
+            myBookmarks.filter { it.bookmarkId != existBookmark.bookmarkId }
         }
 
-        val bookmarks = bookmarkRepository.findAllByUserId(user.userId).map { bookmark ->
-            postRepository.findById(bookmark.postId).get()
-        }
+        val newUser = userRepository.save(
+            user.copy(bookmarks = myBookmarks)
+        )
 
-        return Mappers.postListToBookmarkVoList(bookmarks)
+        return newUser.bookmarks.map { it.toModel() }
     }
 
 }

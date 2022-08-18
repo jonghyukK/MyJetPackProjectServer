@@ -1,49 +1,46 @@
 package com.kjh.myserver073.service
 
 import com.kjh.myserver073.mapper.Mappers
-import com.kjh.myserver073.model.PlaceVo
 import com.kjh.myserver073.model.entity.Place
-import com.kjh.myserver073.model.entity.Post
-import com.kjh.myserver073.model.vo.RankingVo
+import com.kjh.myserver073.model.model.PlaceModel
+import com.kjh.myserver073.model.model.PlaceWithRankingModel
+import com.kjh.myserver073.model.model.toModel
 import com.kjh.myserver073.repository.PlaceRepository
-import com.kjh.myserver073.repository.PostRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 
 @Service
 class PlaceServiceImpl constructor(
-    @Autowired private val placeRepository: PlaceRepository,
-    @Autowired private val postRepository: PostRepository
+    @Autowired private val placeRepository: PlaceRepository
 ): PlaceService {
+
     override fun findAll(): List<Place> {
         return placeRepository.findAll()
     }
 
-    override fun findByPlaceName(placeName: String): PlaceVo? {
+    override fun findByPlaceName(placeName: String): PlaceModel? {
         val place = placeRepository.findByPlaceName(placeName)!!
-        val posts = postRepository.findAllByPlacePlaceId(place.placeId)
 
-        return Mappers.placeToPlaceVoWithPosts(place, posts)
+        return place.toModel()
     }
 
-    override fun findAllByUploadCountDesc(): List<RankingVo> {
-        val places = placeRepository.findAllByOrderByUploadCountDesc()
+    override fun findByPlaceNameWithAroundPaging(
+        placeName: String,
+        pageable : Pageable
+    ): List<PlaceModel> =
+        placeRepository.findByPlaceName(placeName)?.let { place ->
+            placeRepository.findAllByCityName(place.cityName, pageable).map { it.toModel() }
+        } ?: emptyList()
 
-        return Mappers.placeToRankingVo(places)
-    }
 
-    override fun findAllBySubCityName(subCityName: String): List<PlaceVo> {
-        val placeList = placeRepository.findAllBySubCityName(subCityName)
-        val postListByPlace = placeList.map { place ->
-            Mappers.placeToPlaceVoWithPosts(place, postRepository.findAllByPlacePlaceId(place.placeName))
-        }
+    override fun findAllByUploadCountDesc(): List<PlaceWithRankingModel> =
+        Mappers.makePlaceWithRanking(placeRepository.findAllByOrderByUploadCountDesc())
 
-        return postListByPlace
+    override fun findAllBySubCityName(subCityName: String): List<PlaceModel> =
+        placeRepository.findAllBySubCityName(subCityName).map { it.toModel() }
 
-//        val str = postRepository.findAllByPlaceSubCityNameOrderByCreatedAtDesc(subCityName)
-//            .groupBy { it.place.placeName }
-//
-//        return str
-    }
+    override fun findBySubCityName(subCityName: String): PlaceModel =
+        placeRepository.findBySubCityName(subCityName).toModel()
 }

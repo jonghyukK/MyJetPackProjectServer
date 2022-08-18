@@ -35,5 +35,8 @@ data class Place(
     val uploadCount: Int = 0,
 
     @Column
-    val placeImg: String
+    val placeImg: String,
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "place")
+    val posts: List<Post> = listOf()
 )

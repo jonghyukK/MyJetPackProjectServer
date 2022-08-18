@@ -46,7 +46,13 @@ data class User(
         val followingList: List<String> = listOf(),
 
         @Transient
-        val isFollowing: Boolean = false
+        val isFollowing: Boolean = false,
+
+        @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+        val posts: List<Post> = listOf(),
+
+        @OneToMany(fetch = FetchType.LAZY, mappedBy = "userId")
+        val bookmarks: List<Bookmark> = listOf()
 ) {
         override fun toString(): String {
                 return super.toString()

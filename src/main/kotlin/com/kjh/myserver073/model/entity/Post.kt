@@ -28,6 +28,7 @@ data class Post(
         val content: String? = null,
 
         @Convert(converter = StringArrayConverter::class)
+        @Column(columnDefinition = "TEXT")
         val imageUrl: List<String> = listOf(),
 
         @Column

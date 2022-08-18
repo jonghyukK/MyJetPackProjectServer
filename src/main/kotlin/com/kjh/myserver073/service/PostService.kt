@@ -13,7 +13,7 @@ interface PostService {
 
     fun findByPlaceSubCityName(subCityName: String): List<Post>
 
-
+    fun deletePostByPostId(postId: Int)
 
 
 //    fun findAllByPlaceName(placeName: String): List<Post>

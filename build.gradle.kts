@@ -27,8 +27,8 @@ dependencies {
 	implementation("com.h2database:h2")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 
-	implementation("com.google.firebase:firebase-admin:6.8.1")
-	implementation("com.squareup.okhttp3:okhttp:4.9.3")
+	implementation("com.google.firebase:firebase-admin:8.1.0")
+	implementation("com.squareup.okhttp3:okhttp:4.10.0")
 }
 
 tasks.withType<KotlinCompile> {
